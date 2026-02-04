@@ -1,0 +1,74 @@
+This sequential plan is your "Master Blueprint." Use this as the primary context for your AI agents in **Anti Gravity** to ensure they build the right features in the correct order.
+
+---
+
+### **Phase 1: Project Scoping & Core Brain (The AI Engine)**
+
+Before the web app exists, the intelligence must work.
+
+1. **AI Research:** Select the Hugging Face `distilbert-base-uncased-emotion` model.
+2. **FastAPI Setup:** Create a Python backend that loads this model.
+3. **Core Endpoint:** Build `/analyze`—takes a text paragraph, returns JSON with 8 emotion scores.
+4. **Logic Extension:** Write the "Media Scraper" utility using `BeautifulSoup` to extract article text from a URL for one-time analysis.
+
+### **Phase 2: Database & Security (The Memory)**
+
+Setting up the foundation for user history and data safety.
+
+1. **PostgreSQL Schema:** * `Users`: Firebase UID, profile info.
+* `Analyses`: Encrypted paragraph, 8-point emotion JSON, timestamp, source (text or URL).
+
+
+2. **Encryption Utility:** Implement AES-256 to encrypt the `Raw_Text` before it touches the database.
+3. **Redis Integration:** Setup a Redis queue to handle the AI inference tasks, ensuring the app doesn't hang during heavy analysis.
+
+### **Phase 3: The Dashboard Shell (Frontend)**
+
+Building the "Sanctuary" UI you saw in the mockups.
+
+1. **Next.js Scaffold:** Initialize the App Router and Tailwind CSS.
+2. **Bento Grid Layout:** Create the responsive grid containers for your cards.
+3. **Mobile Navigation:** Build the **Hamburger Menu** for mobile and a persistent sidebar for desktop.
+4. **Auth Integration:** Connect **Firebase Auth** so users can sign in and keep their history private.
+
+### **Phase 4: Data Visualization (The Insights)**
+
+Turning numbers into the "Wheel" and "Heatmap."
+
+1. **Emotion Wheel:** Build the **Layered Donut/Sunburst** chart using D3.js.
+* *Inner:* Core Emotion. *Outer:* Intensity/Sub-emotion.
+
+
+2. **Activity Map:** Build the **GitHub-style Heatmap** that pulls "entry frequency" from Postgres.
+3. **Temporal Drift:** Create the 7-day trend line graph using Recharts or D3.
+
+### **Phase 5: Advanced Features & Automation**
+
+Making the app "Smart" and "Reliable."
+
+1. **Agent Modes:** Implement the system prompts for "Counselor" and "Analytical" modes.
+2. **Care Corner Logic:** Add the conditional rendering (e.g., if `anger > 0.8`, show Breathing Exercise).
+3. **Offline PWA:** Configure Service Workers to allow users to write thoughts offline and sync them later.
+4. **Discord Webhooks:** Set up a notification trigger for "Crisis Detection" (extreme emotional dips).
+
+### **Phase 6: DevOps & Deployment**
+
+The final move to make it live.
+
+1. **Dockerization:** Create a `docker-compose.yml` that bundles the Next.js, FastAPI, Redis, and Postgres.
+2. **GitHub Actions:** Write a workflow that runs **Automation Tests** (Checking if AI returns valid JSON) on every push.
+3. **Cloud Launch:** Deploy the frontend to Vercel and the backend/database to Railway or AWS.
+
+---
+
+### **Summary Table for Anti Gravity Prompts**
+
+| Step | Agent Instruction | Key Tech |
+| --- | --- | --- |
+| **I** | "Build a FastAPI server with a Hugging Face pipeline." | Python / FastAPI |
+| **II** | "Design a Prisma schema for Postgres with AES-256 encryption." | SQL / Node.js |
+| **III** | "Create a responsive Bento Grid dashboard with Sage Green/Cream." | Next.js / Tailwind |
+| **IV** | "Implement an interactive D3.js layered donut chart for emotions." | D3.js / React |
+
+[Custom responsive emotion charts](https://www.youtube.com/watch?v=KKl60TosKb0)
+This video is highly relevant because it provides the technical foundation for building the complex, interactive layered donut and spider charts you need for your dashboard.

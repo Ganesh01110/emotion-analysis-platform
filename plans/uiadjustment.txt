@@ -1,0 +1,50 @@
+Building a mobile-responsive dashboard with a **hamburger menu** and a **layered donut emotion wheel** is a classic "Senior UI" challenge. Since you are using a full-stack setup with Next.js and Tailwind, here is the technical roadmap for those two specific features.
+
+---
+
+### 1. The Mobile-First Hamburger Menu
+
+In a dashboard, the sidebar is usually a "Permanent Drawer" on desktop and a "Hidden Hamburger" on mobile.
+
+* **Logic:** Use a `useState` hook to track the `isOpen` state.
+* **Tailwind Strategy:** * **Desktop:** Sidebar has a fixed width (e.g., `w-64`) and stays visible (`hidden md:block`).
+* **Mobile:** Sidebar is positioned absolutely (`absolute`), starts off-screen (`-translate-x-full`), and slides in when the hamburger is clicked (`translate-x-0`).
+
+
+* **The "Header" approach:** On mobile, your sidebar links move into the hamburger, but your **Profile Avatar** and **Settings** should stay in a small top-header for quick access.
+
+---
+
+### 2. The Layered Donut "Emotion Wheel"
+
+A layered donut chart (also called a **Nested Donut** or **Sunburst**) is perfect for emotions because it can show "Primary Emotions" (inner ring) and "Intensity" or "Blends" (outer rings).
+
+* **Tech Stack:** Use **D3.js** for maximum control or **Recharts** for speed.
+* **Implementation Steps:**
+1. **Inner Ring:** Represents core categories (e.g., Joy, Anger, Fear).
+2. **Outer Ring(s):** Represents sub-emotions or intensity levels (e.g., under "Joy," the outer layer could show "Serenity" vs. "Ecstasy").
+3. **Color Sync:** Map your Plutchik color variables (Red for Anger, Yellow for Joy) to each specific "arc" in the chart.
+
+
+* **UX Tip:** Make the rings **interactive**. If a user clicks the "Anger" slice, the rest of the dashboard (the Care Corner and History) should filter to show only Anger-related data.
+
+---
+
+### 3. Dashboard Structure: Bento Grid vs. Single Column
+
+* **On Desktop:** Keep the **Bento Grid** (modular tiles). It maximizes screen real estate and looks professional.
+* **On Mobile:** The Bento Grid must **"collapse"** into a single column.
+* **Prioritization:** The "Thought Engine" (Input) stays at the top.
+* **Visualization:** The "Emotion Wheel" stays visible, but secondary data (like the Activity Heatmap) should be moved to a separate "History" tab or placed further down the scroll to reduce cognitive load.
+
+
+
+---
+
+### Your Next Step in Development
+
+To begin the implementation, you'll need the **System Prompts** for your AI agents (Counselor vs. Brutally Honest) to ensure the analysis data matches your layered donut structure.
+
+**Would you like me to generate the "System Prompts" for these different Agent Modes now?**
+
+For a deep dive into building interactive dashboards with React and D3, this tutorial on [Creating custom responsive charts](https://www.youtube.com/watch?v=KKl60TosKb0) will help you master the "layered donut" logic you need for your emotion wheel.
