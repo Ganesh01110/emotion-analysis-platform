@@ -1,7 +1,5 @@
-"""
-GitHub Actions CI/CD Pipeline
-Automated testing and deployment
-"""
+# GitHub Actions CI/CD Pipeline
+# Automated testing and deployment
 
 name: CI/CD Pipeline
 

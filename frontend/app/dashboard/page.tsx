@@ -4,11 +4,23 @@
 
 import { useState } from 'react';
 import Navigation from '../components/Navigation';
-import EmotionWheel from '../components/EmotionWheel';
-import SpiderChart from '../components/SpiderChart';
+import UserHeader from '../components/UserHeader';
+import { useAuth } from '../hooks/useAuth';
+import dynamic from 'next/dynamic';
+import LoadingSpinner from '../components/LoadingSpinner';
 import { Sparkles, Link as LinkIcon, Mic } from 'lucide-react';
 
+const EmotionWheel = dynamic(() => import('../components/EmotionWheel'), {
+    loading: () => <LoadingSpinner />,
+    ssr: false
+});
+const SpiderChart = dynamic(() => import('../components/SpiderChart'), {
+    loading: () => <LoadingSpinner />,
+    ssr: false
+});
+
 export default function DashboardPage() {
+    const { getDisplayName } = useAuth();
     const [activeTab, setActiveTab] = useState<'thoughts' | 'media'>('thoughts');
     const [text, setText] = useState('');
     const [agentMode, setAgentMode] = useState('analytical');
@@ -42,24 +54,28 @@ export default function DashboardPage() {
             <Navigation />
 
             {/* Main Content */}
-            <main className="md:ml-64 pt-16 md:pt-0 p-6">
-                <div className="max-w-7xl mx-auto">
+            <main className="md:ml-60 min-h-screen">
+                <UserHeader />
+
+                <div className="p-4 md:p-6 max-w-7xl mx-auto space-y-6">
                     {/* Header */}
-                    <div className="mb-8">
-                        <h1 className="text-3xl font-bold mb-2">Good evening, User.</h1>
-                        <p className="text-[var(--text-secondary)]">The tide is calm, and your mind is at peace.</p>
+                    <div className="mb-2">
+                        <h1 className="text-2xl font-bold mb-1">
+                            Good {new Date().getHours() < 12 ? 'morning' : new Date().getHours() < 18 ? 'afternoon' : 'evening'}, {getDisplayName()}.
+                        </h1>
+                        <p className="text-sm text-[var(--text-secondary)]">The tide is calm, and your mind is at peace.</p>
                     </div>
 
                     {/* Bento Grid */}
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
                         {/* Input Card - Spans 2 columns */}
                         <div className="lg:col-span-2 card">
                             <div className="flex gap-4 mb-4 border-b border-[var(--border-color)]">
                                 <button
                                     onClick={() => setActiveTab('thoughts')}
                                     className={`pb-3 px-4 font-semibold transition-colors ${activeTab === 'thoughts'
-                                            ? 'border-b-2 border-[var(--accent-green)] text-[var(--accent-green)]'
-                                            : 'text-[var(--text-secondary)]'
+                                        ? 'border-b-2 border-[var(--accent-green)] text-[var(--accent-green)]'
+                                        : 'text-[var(--text-secondary)]'
                                         }`}
                                 >
                                     REFLECTIONS
@@ -67,8 +83,8 @@ export default function DashboardPage() {
                                 <button
                                     onClick={() => setActiveTab('media')}
                                     className={`pb-3 px-4 font-semibold transition-colors ${activeTab === 'media'
-                                            ? 'border-b-2 border-[var(--accent-green)] text-[var(--accent-green)]'
-                                            : 'text-[var(--text-secondary)]'
+                                        ? 'border-b-2 border-[var(--accent-green)] text-[var(--accent-green)]'
+                                        : 'text-[var(--text-secondary)]'
                                         }`}
                                 >
                                     AUDIO JOURNAL

@@ -5,16 +5,16 @@
 import { useEffect, useRef } from 'react';
 import * as d3 from 'd3';
 
-interface TriggerNode {
+interface TriggerNode extends d3.SimulationNodeDatum {
     id: string;
     group: number;
     radius: number;
     emotion: string;
 }
 
-interface TriggerLink {
-    source: string;
-    target: string;
+interface TriggerLink extends d3.SimulationLinkDatum<TriggerNode> {
+    source: string | TriggerNode;
+    target: string | TriggerNode;
     value: number;
 }
 
@@ -42,7 +42,7 @@ export default function TriggerMap({ nodes, links, width = 600, height = 400 }: 
             .force('link', d3.forceLink<TriggerNode, TriggerLink>(links).id(d => d.id).distance(100))
             .force('charge', d3.forceManyBody().strength(-200))
             .force('center', d3.forceCenter(width / 2, height / 2))
-            .force('collision', d3.forceCollide().radius(d => d.radius + 5));
+            .force('collision', d3.forceCollide<TriggerNode>().radius(d => d.radius + 5));
 
         // Draw links
         const link = svg.append('g')
@@ -84,31 +84,27 @@ export default function TriggerMap({ nodes, links, width = 600, height = 400 }: 
         // Simulation tick
         simulation.on('tick', () => {
             link
-                // @ts-ignore
-                .attr('x1', d => d.source.x)
-                // @ts-ignore
-                .attr('y1', d => d.source.y)
-                // @ts-ignore
-                .attr('x2', d => d.target.x)
-                // @ts-ignore
-                .attr('y2', d => d.target.y);
+                .attr('x1', d => (d.source as TriggerNode).x!)
+                .attr('y1', d => (d.source as TriggerNode).y!)
+                .attr('x2', d => (d.target as TriggerNode).x!)
+                .attr('y2', d => (d.target as TriggerNode).y!);
 
             node
                 .attr('transform', d => `translate(${d.x},${d.y})`);
         });
 
-        function dragstarted(event: any, d: any) {
+        function dragstarted(event: d3.D3DragEvent<SVGGElement, TriggerNode, TriggerNode>, d: TriggerNode) {
             if (!event.active) simulation.alphaTarget(0.3).restart();
             d.fx = d.x;
             d.fy = d.y;
         }
 
-        function dragged(event: any, d: any) {
+        function dragged(event: d3.D3DragEvent<SVGGElement, TriggerNode, TriggerNode>, d: TriggerNode) {
             d.fx = event.x;
             d.fy = event.y;
         }
 
-        function dragended(event: any, d: any) {
+        function dragended(event: d3.D3DragEvent<SVGGElement, TriggerNode, TriggerNode>, d: TriggerNode) {
             if (!event.active) simulation.alphaTarget(0);
             d.fx = null;
             d.fy = null;

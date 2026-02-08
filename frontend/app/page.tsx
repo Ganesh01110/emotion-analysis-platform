@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 export default function HomePage() {
   return (
     <main className="min-h-screen flex items-center justify-center p-8">
@@ -9,9 +11,11 @@ export default function HomePage() {
           AI-powered emotional intelligence for your mental well-being
         </p>
         <div className="flex gap-4 justify-center">
-          <button className="btn-primary">
-            Get Started
-          </button>
+          <Link href="/dashboard">
+            <button className="btn-primary">
+              Get Started
+            </button>
+          </Link>
           <button className="btn-secondary">
             Learn More
           </button>

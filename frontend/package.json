@@ -29,5 +29,8 @@
     "postcss": "^8.4.49",
     "tailwindcss": "^3.4.16",
     "typescript": "^5"
+  },
+  "overrides": {
+    "undici": "5.28.4"
   }
 }

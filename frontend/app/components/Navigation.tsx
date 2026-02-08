@@ -12,9 +12,8 @@ export default function Navigation() {
     const navItems = [
         { name: 'Dashboard', href: '/dashboard', icon: Home },
         { name: 'History', href: '/history', icon: History },
-        { name: 'Analytics', href: '/analytics', icon: BarChart3 },
         { name: 'Self-Care', href: '/self-care', icon: Heart },
-        { name: 'Settings', href: '/settings', icon: Settings },
+        // { name: 'Settings', href: '/settings', icon: Settings },
     ];
 
     return (
@@ -33,7 +32,7 @@ export default function Navigation() {
             </div>
 
             {/* Sidebar - Desktop */}
-            <aside className="hidden md:flex fixed left-0 top-0 h-screen w-64 bg-[var(--bg-card)] border-r border-[var(--border-color)] flex-col">
+            <aside className="hidden md:flex fixed left-0 top-0 h-screen w-60 bg-[var(--bg-card)] border-r border-[var(--border-color)] flex-col">
                 <div className="p-6 border-b border-[var(--border-color)]">
                     <h1 className="text-2xl font-bold bg-gradient-to-r from-[var(--accent-green)] to-[var(--accent-yellow)] bg-clip-text text-transparent">
                         Emotion Analysis
@@ -72,7 +71,7 @@ export default function Navigation() {
                 onClick={() => setIsOpen(false)}
             >
                 <div
-                    className={`fixed left-0 top-0 h-screen w-64 bg-[var(--bg-card)] transform transition-transform ${isOpen ? 'translate-x-0' : '-translate-x-full'
+                    className={`fixed left-0 top-0 h-screen w-60 bg-[var(--bg-card)] transform transition-transform ${isOpen ? 'translate-x-0' : '-translate-x-full'
                         }`}
                     onClick={(e) => e.stopPropagation()}
                 >

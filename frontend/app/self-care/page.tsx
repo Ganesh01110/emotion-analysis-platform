@@ -6,10 +6,32 @@
 'use client';
 
 import Navigation from '../components/Navigation';
-import BreathingExercise from '../components/BreathingExercise';
+import dynamic from 'next/dynamic';
+import LoadingSpinner from '../components/LoadingSpinner';
 import { Heart, Music, Book, Coffee, Sparkles } from 'lucide-react';
+import affirmationsData from '../data/affirmations.json';
+import { useState, useEffect } from 'react';
+
+const BreathingExercise = dynamic(() => import('../components/BreathingExercise'), {
+    loading: () => <LoadingSpinner />,
+    ssr: false
+});
 
 export default function SelfCarePage() {
+    const getRandomAffirmations = () => {
+        const shuffled = [...affirmationsData].sort(() => 0.5 - Math.random());
+        return shuffled.slice(0, 3);
+    };
+
+    const [currentAffirmations, setCurrentAffirmations] = useState<string[]>([]);
+
+    useEffect(() => {
+        setCurrentAffirmations(getRandomAffirmations());
+    }, []);
+
+    const handleGenerate = () => {
+        setCurrentAffirmations(getRandomAffirmations());
+    };
     const moodLifters = [
         {
             icon: Music,
@@ -87,7 +109,7 @@ export default function SelfCarePage() {
                                 <div className="flex-1">
                                     <h3 className="font-semibold text-lg mb-2">Need Immediate Support?</h3>
                                     <p className="mb-4 opacity-90">
-                                        If you're experiencing a mental health crisis, please reach out to a professional.
+                                        If you&apos;re experiencing a mental health crisis, please reach out to a professional.
                                     </p>
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                                         <div className="bg-white bg-opacity-20 rounded-lg p-3">
@@ -110,18 +132,23 @@ export default function SelfCarePage() {
                         {/* Affirmations */}
                         <div className="lg:col-span-2 card">
                             <h3 className="font-semibold mb-4">Daily Affirmations</h3>
-                            <div className="space-y-3">
-                                <div className="p-4 bg-[var(--bg-secondary)] rounded-lg italic">
-                                    "I am worthy of love, peace, and happiness."
-                                </div>
-                                <div className="p-4 bg-[var(--bg-secondary)] rounded-lg italic">
-                                    "My feelings are valid, and I honor them."
-                                </div>
-                                <div className="p-4 bg-[var(--bg-secondary)] rounded-lg italic">
-                                    "I am growing stronger with each passing day."
-                                </div>
+                            <div className="space-y-3 min-h-[200px]">
+                                {currentAffirmations.length > 0 ? (
+                                    currentAffirmations.map((text, i) => (
+                                        <div key={i} className="p-4 bg-[var(--bg-secondary)] rounded-lg italic animate-in fade-in slide-in-from-bottom-2 duration-500" style={{ animationDelay: `${i * 100}ms` }}>
+                                            &quot;{text}&quot;
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="flex items-center justify-center h-full text-[var(--text-secondary)]">
+                                        Loading inspiration...
+                                    </div>
+                                )}
                             </div>
-                            <button className="btn-secondary w-full mt-4">
+                            <button
+                                onClick={handleGenerate}
+                                className="btn-secondary w-full mt-4 hover:scale-[1.02] active:scale-95 transition-all"
+                            >
                                 Generate New Affirmation
                             </button>
                         </div>

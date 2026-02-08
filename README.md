@@ -85,10 +85,15 @@ EmotionanalysisProject/
 
 ## 📚 Documentation
 
-- **Development Guide**: `docs/DEVELOPMENT.md`
-- **Implementation Plan**: `implementation_plan.md`
-- **Task Progress**: `task.md`
-- **Project Status**: `STATUS.md`
+For detailed information about this project, please refer to the following documentation:
+
+- **[Walkthrough Guide](walkthrough.md)** - Complete project overview, features, and getting started guide
+- **[Implementation Plan](docs/implementation_plan.md)** - Technical architecture, proposed changes, and verification plan
+- **[Project Status](docs/STATUS.md)** - Current project status, commit history, and next steps
+- **[Task Progress](docs/task.md)** - Detailed task checklist and development progress
+- **[Development Guide](docs/DEVELOPMENT.md)** - Development setup and guidelines
+- **[Setup Instructions](docs/SETUP.md)** - Detailed setup instructions for all components
+- **[Deployment Guide](docs/DEPLOYMENT.md)** - Deployment instructions for production
 
 ## 🧪 Testing
 
@@ -137,22 +142,3 @@ Email: ganeshsahu0108@gmail.com
 ---
 
 Built with ❤️ for mental health awareness
-
-# Quick start with Docker
-docker-compose up -d
-
-# Or manually
-cd backend && pip install -r requirements.txt && uvicorn main:app --reload
-cd frontend && npm install && npm run dev
-
-
------------------
-
-what manual things i have to do here like giving the firebase id , emial etc also here "NEXT_PUBLIC_API_URL=http://localhost:8000
-NEXT_PUBLIC_FIREBASE_API_KEY=your-api-key
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your-auth-domain
-NEXT_PUBLIC_FIREBASE_PROJECT_ID=your-project-id
-NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your-storage-bucket
-NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your-sender-id
-NEXT_PUBLIC_FIREBASE_APP_ID=your-app-id
-" where i will get these things and check if the docker file logic in frontend and backend is correct or not and optimised or not ??

@@ -119,7 +119,7 @@ export default function LoginPage() {
                     </button>
 
                     <p className="text-center text-sm text-[var(--text-secondary)] mt-6">
-                        Don't have an account?{' '}
+                        Don&apos;t have an account?{' '}
                         <a href="/signup" className="text-[var(--accent-green)] hover:underline">
                             Sign up
                         </a>
