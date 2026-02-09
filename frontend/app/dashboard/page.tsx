@@ -28,6 +28,17 @@ const EmotionTrendChart = dynamic(() => import('../components/EmotionTrendChart'
     ssr: false
 });
 
+const emotionColors: Record<string, string> = {
+    joy: '#FFD700',
+    sadness: '#4A90E2',
+    anger: '#E74C3C',
+    fear: '#9B59B6',
+    trust: '#86E3CE',
+    disgust: '#8E44AD',
+    surprise: '#F39C12',
+    anticipation: '#E67E22',
+};
+
 export default function DashboardPage() {
     const { getDisplayName } = useAuth();
     const [activeTab, setActiveTab] = useState<'thoughts' | 'media' | 'url'>('thoughts');
@@ -52,7 +63,7 @@ export default function DashboardPage() {
 
             if (historyRes.ok) {
                 const data = await historyRes.json();
-                setHistory(data.items || data); // Fallback for safety
+                setHistory(data.items || data);
             }
             if (summaryRes.ok) setHeatmapData(await summaryRes.json());
         } catch (error) {
@@ -63,6 +74,38 @@ export default function DashboardPage() {
     useEffect(() => {
         fetchDashboardData();
     }, []);
+
+    // Contextual Trend Fetching (7-day window around selected date)
+    useEffect(() => {
+        if (!selectedDate) {
+            // If no date selected, we just use the latest history already fetched
+            fetchDashboardData();
+            return;
+        }
+
+        const fetchContextualHistory = async () => {
+            try {
+                const date = new Date(selectedDate);
+                const start = new Date(date);
+                start.setDate(date.getDate() - 3);
+                const end = new Date(date);
+                end.setDate(date.getDate() + 3);
+
+                const response = await fetch(
+                    `${process.env.NEXT_PUBLIC_API_URL}/api/history?start_date=${start.toISOString()}&end_date=${end.toISOString()}&limit=50`
+                );
+
+                if (response.ok) {
+                    const data = await response.json();
+                    setHistory(data.items || []);
+                }
+            } catch (error) {
+                console.error('Error fetching contextual history:', error);
+            }
+        };
+
+        fetchContextualHistory();
+    }, [selectedDate]);
 
     const handleAnalyze = async () => {
         if (!text.trim()) return;
@@ -299,43 +342,33 @@ export default function DashboardPage() {
                             )}
                         </div>
 
-                        {/* Mindfulness Streak - Heatmap Card */}
-                        <div className="card">
+                        {/* Activity Stream */}
+                        <div className="card lg:col-span-1">
                             <div className="flex items-center justify-between mb-4">
-                                <h3 className="font-semibold text-xs tracking-wider text-[var(--text-secondary)]">MINDFULNESS STREAK</h3>
+                                <h3 className="font-semibold text-xs tracking-wider text-[var(--text-secondary)] uppercase">Activity Stream</h3>
                                 <div className="text-[10px] text-[var(--text-secondary)] font-medium">Last 6 Months</div>
                             </div>
-                            <ActivityHeatmap
-                                data={heatmapData}
-                                width={300}
-                                height={130}
-                                onDateClick={(date) => setSelectedDate(date)}
-                            />
-                            <p className="text-[10px] text-[var(--text-secondary)] mt-4 italic opacity-80">
-                                {selectedDate ? `Viewing patterns for ${new Date(selectedDate).toLocaleDateString()}` : "Click a tile to explore daily patterns."}
-                            </p>
+                            <div className="mt-4">
+                                <ActivityHeatmap data={heatmapData} emotionColors={emotionColors} width={300} height={120} onDateClick={(date) => setSelectedDate(date)} />
+                                <p className="text-[10px] text-[var(--text-secondary)] mt-4 italic opacity-80">
+                                    {selectedDate ? `Patterns for ${new Date(selectedDate).toLocaleDateString()}` : "Daily mindfulness activity heatmap."}
+                                </p>
+                            </div>
                         </div>
 
-                        {/* Emotion Trends - Wide Card */}
-                        <div className="md:col-span-2 card">
-                            <div className="flex items-center justify-between mb-2">
-                                <h3 className="font-semibold text-xs tracking-wider text-[var(--text-secondary)] uppercase">Emotional Resonance</h3>
-                                <div className="flex items-center gap-2">
-                                    <span className="w-2 h-2 rounded-full bg-[var(--accent-green)] animate-pulse" />
-                                    <span className="text-[10px] font-bold text-[var(--text-secondary)]">LIVE TRENDS</span>
-                                </div>
+                        {/* Emotional Trends */}
+                        <div className="card lg:col-span-2">
+                            <div className="flex items-center justify-between mb-6">
+                                <h3 className="font-semibold text-sm">EMOTIONAL TRENDS</h3>
+                                <div className="text-[10px] text-[var(--text-secondary)] font-bold">Resonance Over Time</div>
                             </div>
-                            <div className="mt-4">
-                                {trendData.length > 0 ? (
-                                    <EmotionTrendChart data={trendData} />
-                                ) : (
-                                    <div className="h-[200px] flex flex-col items-center justify-center text-center px-10">
-                                        <Sparkles size={32} className="text-[var(--text-secondary)] opacity-10 mb-4" />
-                                        <p className="text-xs text-[var(--text-secondary)] opacity-60">
-                                            Logs your first thoughts to begin charting your emotional landscape over time.
-                                        </p>
-                                    </div>
-                                )}
+                            <div className="transition-all duration-500">
+                                <EmotionTrendChart
+                                    data={history.map(h => ({ date: h.timestamp, scores: h.emotion_scores }))}
+                                    selectedDate={selectedDate}
+                                    width={700}
+                                    height={200}
+                                />
                             </div>
                         </div>
 

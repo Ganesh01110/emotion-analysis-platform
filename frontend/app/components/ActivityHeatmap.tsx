@@ -9,16 +9,18 @@ interface ActivityData {
     date: string;
     count: number;
     intensity: number;
+    dominant_emotion?: string;
 }
 
 interface ActivityHeatmapProps {
     data: ActivityData[];
     onDateClick?: (date: string) => void;
+    emotionColors?: Record<string, string>;
     width?: number;
     height?: number;
 }
 
-export default function ActivityHeatmap({ data, onDateClick, width = 700, height = 140 }: ActivityHeatmapProps) {
+export default function ActivityHeatmap({ data, onDateClick, emotionColors = {}, width = 700, height = 140 }: ActivityHeatmapProps) {
     const svgRef = useRef<SVGSVGElement>(null);
 
     useEffect(() => {
@@ -26,6 +28,24 @@ export default function ActivityHeatmap({ data, onDateClick, width = 700, height
 
         // Clear previous chart
         d3.select(svgRef.current).selectAll('*').remove();
+
+        // Handle Empty State
+        if (data.length === 0) {
+            const emptySvg = d3.select(svgRef.current)
+                .attr('width', width)
+                .attr('height', height);
+
+            emptySvg.append('text')
+                .attr('x', width / 2)
+                .attr('y', height / 2)
+                .attr('text-anchor', 'middle')
+                .attr('fill', 'var(--text-secondary)')
+                .attr('font-size', '14px')
+                .attr('font-weight', '500')
+                .text('No reflections yet. Start your journey!');
+
+            return;
+        }
 
         const cellSize = 12;
         const cellPadding = 3;
@@ -35,18 +55,6 @@ export default function ActivityHeatmap({ data, onDateClick, width = 700, height
         // Calculate weeks (GitHub style: columns are weeks, rows are days of week)
         const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
         const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
-        // Intensity color scale
-        const colorScale = d3
-            .scaleLinear<string>()
-            .domain([0, 0.25, 0.5, 0.75, 1])
-            .range([
-                'var(--bg-secondary)',
-                'var(--accent-green-low, #c6e5d9)',
-                'var(--accent-green)',
-                'var(--accent-green-high, #2d4a36)',
-                '#1d3324',
-            ]);
 
         // Process data into a map for easy lookup
         const dataMap = new Map(data.map(d => [d.date, d]));
@@ -94,16 +102,14 @@ export default function ActivityHeatmap({ data, onDateClick, width = 700, height
         // Draw cells and look for month changes
         let currentMonth = -1;
         dates.forEach((date) => {
-            // Calculate position based on the number of days since startDate
             const diffDays = Math.floor((date.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
             const weekIndex = Math.floor(diffDays / 7);
-            const dayIndex = (date.getDay() + 6) % 7; // Monday is 0, Sunday is 6
+            const dayIndex = (date.getDay() + 6) % 7;
 
-            // Local date string lookup (YYYY-MM-DD)
             const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-            const dayData = dataMap.get(dateStr) || { date: dateStr, count: 0, intensity: 0 };
+            const dayData: ActivityData = (dataMap.get(dateStr) as any) || { date: dateStr, count: 0, intensity: 0 };
 
-            // Draw month label if month changes
+            // Draw month label
             if (date.getMonth() !== currentMonth) {
                 currentMonth = date.getMonth();
                 svg.append('text')
@@ -115,29 +121,43 @@ export default function ActivityHeatmap({ data, onDateClick, width = 700, height
                     .text(months[currentMonth]);
             }
 
+            // Color calculation based on dominant emotion and intensity
+            let cellColor = 'var(--bg-secondary)';
+            let cellOpacity = 1;
+
+            if (dayData.count > 0) {
+                const emotionKey = dayData.dominant_emotion?.toLowerCase() || 'joy';
+                cellColor = emotionColors[emotionKey] || 'var(--accent-green)';
+                // Intensity ranges from 0-1, we map it to 0.3-1 opacity for visibility
+                cellOpacity = 0.3 + (dayData.intensity * 0.7);
+            }
+
             svg.append('rect')
                 .attr('x', weekIndex * (cellSize + cellPadding))
                 .attr('y', dayIndex * (cellSize + cellPadding))
                 .attr('width', cellSize)
                 .attr('height', cellSize)
                 .attr('rx', 2)
-                .attr('fill', dayData.count > 0 ? colorScale(dayData.intensity) : 'var(--bg-secondary)')
-                .attr('opacity', 1)
+                .attr('fill', cellColor)
+                .attr('opacity', cellOpacity)
                 .style('cursor', 'pointer')
                 .on('mouseover', function () {
                     d3.select(this)
                         .attr('stroke', 'var(--accent-yellow)')
-                        .attr('stroke-width', 1.5);
+                        .attr('stroke-width', 1.5)
+                        .attr('opacity', 1);
                 })
                 .on('mouseout', function () {
-                    d3.select(this).attr('stroke', 'none');
+                    d3.select(this)
+                        .attr('stroke', 'none')
+                        .attr('opacity', cellOpacity);
                 })
                 .on('click', () => {
                     if (onDateClick) onDateClick(dateStr);
                 });
         });
 
-    }, [data, onDateClick, width, height]);
+    }, [data, onDateClick, emotionColors, width, height]);
 
     return (
         <div className="activity-heatmap-container overflow-x-auto scrollbar-hide pb-2">

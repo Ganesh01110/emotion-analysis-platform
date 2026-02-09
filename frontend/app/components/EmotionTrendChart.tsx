@@ -12,6 +12,7 @@ interface HistoryEntry {
 
 interface EmotionTrendChartProps {
     data: HistoryEntry[];
+    selectedDate?: string | null;
     width?: number;
     height?: number;
 }
@@ -27,9 +28,29 @@ const EMOTIONS = [
     { id: 'anticipation', label: 'Anticipation', color: '#E67E22' },
 ];
 
-export default function EmotionTrendChart({ data, width = 800, height = 250 }: EmotionTrendChartProps) {
+export default function EmotionTrendChart({ data, selectedDate, width = 800, height = 250 }: EmotionTrendChartProps) {
     const svgRef = useRef<SVGSVGElement>(null);
     const [selectedEmotion, setSelectedEmotion] = useState('joy');
+
+    useEffect(() => {
+        if (selectedDate && data.length) {
+            // Find the entry for this date (YYYY-MM-DD match)
+            const entriesForDate = data.filter(d => d.date.includes(selectedDate));
+            if (entriesForDate.length > 0) {
+                // Find dominant emotion of the first reflection on that day
+                const scores = entriesForDate[0].scores;
+                let dominant = 'joy';
+                let maxScore = -1;
+                Object.entries(scores).forEach(([emo, score]) => {
+                    if (score > maxScore) {
+                        maxScore = score;
+                        dominant = emo;
+                    }
+                });
+                setSelectedEmotion(dominant);
+            }
+        }
+    }, [selectedDate, data]);
 
     useEffect(() => {
         if (!svgRef.current || !data.length) return;
@@ -55,8 +76,25 @@ export default function EmotionTrendChart({ data, width = 800, height = 250 }: E
         })).sort((a, b) => a.date.getTime() - b.date.getTime());
 
         // Scales
+        let xDomain: [Date, Date];
+        if (selectedDate) {
+            const centerDate = new Date(selectedDate);
+            const start = new Date(centerDate);
+            start.setDate(centerDate.getDate() - 3);
+            const end = new Date(centerDate);
+            end.setDate(centerDate.getDate() + 3);
+            xDomain = [start, end];
+        } else {
+            xDomain = d3.extent(plotData, d => d.date) as [Date, Date];
+            // If only one data point and no range, buffer it
+            if (xDomain[0]?.getTime() === xDomain[1]?.getTime()) {
+                const d = xDomain[0];
+                xDomain = [new Date(d.getTime() - 86400000), new Date(d.getTime() + 86400000)];
+            }
+        }
+
         const xScale = d3.scaleTime()
-            .domain(d3.extent(plotData, d => d.date) as [Date, Date])
+            .domain(xDomain)
             .range([0, innerWidth]);
 
         const yScale = d3.scaleLinear()
@@ -146,15 +184,15 @@ export default function EmotionTrendChart({ data, width = 800, height = 250 }: E
     }, [data, selectedEmotion, width, height]);
 
     return (
-        <div className="emotion-trend-chart w-full">
+        <div className="emotion-trend-chart w-full overflow-hidden">
             <div className="flex flex-wrap gap-2 mb-6 overflow-x-auto pb-2 scrollbar-hide">
                 {EMOTIONS.map(emotion => (
                     <button
                         key={emotion.id}
                         onClick={() => setSelectedEmotion(emotion.id)}
-                        className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all border ${selectedEmotion === emotion.id
-                                ? 'bg-[var(--bg-card)] shadow-sm'
-                                : 'bg-transparent border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                        className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all border whitespace-nowrap ${selectedEmotion === emotion.id
+                            ? 'bg-[var(--bg-card)] shadow-sm'
+                            : 'bg-transparent border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
                             }`}
                         style={{
                             borderColor: selectedEmotion === emotion.id ? emotion.color : 'transparent',
@@ -165,8 +203,11 @@ export default function EmotionTrendChart({ data, width = 800, height = 250 }: E
                     </button>
                 ))}
             </div>
-            <div className="relative bg-[var(--bg-secondary)]/30 rounded-xl p-4 border border-[var(--border-color)]/50">
-                <svg ref={svgRef} className="w-full h-auto" viewBox={`0 0 ${width} ${height}`}></svg>
+
+            <div className="relative bg-[var(--bg-secondary)]/30 rounded-xl p-4 border border-[var(--border-color)]/50 overflow-x-auto custom-scrollbar">
+                <div className="min-w-[600px] lg:min-w-full">
+                    <svg ref={svgRef} className="w-full h-auto" viewBox={`0 0 ${width} ${height}`}></svg>
+                </div>
             </div>
         </div>
     );

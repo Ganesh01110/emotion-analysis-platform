@@ -194,6 +194,7 @@ async def analyze_text(
                 user_id=user.id,
                 encrypted_text=request.text, # Storing raw for now as per user request
                 emotion_scores=emotion_scores.model_dump(),
+                dominant_emotion=dominant_emotion,
                 source_type=SourceType.TEXT,
                 agent_mode=request.agent_mode
             )
@@ -263,6 +264,7 @@ async def analyze_media(
                 user_id=user.id,
                 encrypted_text=None,  # Not storing large content as per requirements
                 emotion_scores=emotion_scores.model_dump(),
+                dominant_emotion=dominant_emotion,
                 source_type=SourceType.URL,
                 source_url=str(request.url),
                 agent_mode="analytical"
@@ -293,6 +295,8 @@ async def get_history(
     source_type: Optional[str] = None,
     emotion: Optional[str] = None,
     search: Optional[str] = None,
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
     db: Session = Depends(get_db)
 ):
     """Fetch paginated and filtered analysis history"""
@@ -311,6 +315,26 @@ async def get_history(
                 (Analysis.encrypted_text.ilike(search_query)) | 
                 (Analysis.source_url.ilike(search_query))
             )
+        
+        # Date range filtering
+        if start_date:
+            try:
+                from datetime import datetime
+                s_date = datetime.fromisoformat(start_date)
+                query = query.filter(Analysis.timestamp >= s_date)
+            except ValueError:
+                pass
+        
+        if end_date:
+            try:
+                from datetime import datetime
+                # Add 23:59:59 to include the whole end day if only date is provided
+                if 'T' not in end_date:
+                    end_date += 'T23:59:59'
+                e_date = datetime.fromisoformat(end_date)
+                query = query.filter(Analysis.timestamp <= e_date)
+            except ValueError:
+                pass
 
         # Count total before limit/offset
         total = query.count()
@@ -344,49 +368,42 @@ async def get_history(
 
 @router.get("/history/summary")
 async def get_history_summary(db: Session = Depends(get_db)):
-    """Fetch count and intensity summary per day for heatmap"""
+    """Fetch count, intensity and dominant emotion per day for heatmap"""
     try:
-        from sqlalchemy import func, cast, Float
+        from sqlalchemy import func
         
-        # Dialect-specific intensity calculation
-        dialect = db.bind.dialect.name
-        if dialect == 'postgresql':
-            intensity_col = cast(Analysis.emotion_scores['joy'].astext, Float)
-        else:
-            intensity_col = func.json_extract(Analysis.emotion_scores, '$.joy')
-
-        # Group by date
-        results = db.query(
-            func.date(Analysis.timestamp).label('date'),
-            func.count(Analysis.id).label('count'),
-            func.avg(intensity_col).label('intensity')
-        ).group_by(func.date(Analysis.timestamp)).all()
+        # Pull all relevant data for the last 6 months to process dominant emotions
+        # (Doing aggregation in Python to accurately determine "dominant" across multiple entries)
+        from datetime import datetime, timedelta
+        six_months_ago = datetime.now() - timedelta(days=180)
         
-        return [
-            {
-                "date": str(r.date),
-                "count": r.count,
-                "intensity": float(r.intensity or 0)
-            } for r in results
-        ]
+        analyses = db.query(Analysis).filter(Analysis.timestamp >= six_months_ago).all()
+        
+        from collections import defaultdict
+        daily_stats = defaultdict(lambda: {"count": 0, "emotions": defaultdict(list)})
+        
+        for a in analyses:
+            date_str = a.timestamp.date().isoformat()
+            daily_stats[date_str]["count"] += 1
+            # Store all emotion scores for that day
+            for emo, score in a.emotion_scores.items():
+                daily_stats[date_str]["emotions"][emo].append(score)
+        
+        summary = []
+        for date_str, stats in daily_stats.items():
+            # Calculate average for each emotion
+            avg_emotions = {emo: sum(scores)/len(scores) for emo, scores in stats["emotions"].items()}
+            # Peak intensity for the day
+            dominant = max(avg_emotions.items(), key=lambda x: x[1])
+            
+            summary.append({
+                "date": date_str,
+                "count": stats["count"],
+                "intensity": dominant[1],
+                "dominant_emotion": dominant[0]
+            })
+            
+        return summary
     except Exception as e:
         logger.error(f"Summary fetch error: {e}")
-        # Fallback: Pull last 1000 records and aggregate in Python if SQL fails
-        try:
-            from collections import defaultdict
-            analyses = db.query(Analysis).order_by(Analysis.timestamp.desc()).limit(1000).all()
-            stats = defaultdict(lambda: {"count": 0, "sum": 0})
-            for a in analyses:
-                d = a.timestamp.date().isoformat()
-                stats[d]["count"] += 1
-                stats[d]["sum"] += a.emotion_scores.get("joy", 0)
-            
-            return [
-                {
-                    "date": d,
-                    "count": v["count"],
-                    "intensity": v["sum"] / v["count"]
-                } for d, v in stats.items()
-            ]
-        except:
-            return []
+        return []

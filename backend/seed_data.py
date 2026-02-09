@@ -88,6 +88,7 @@ def seed_database():
                 user_id=user.id,
                 encrypted_text=text,
                 emotion_scores=scores,
+                dominant_emotion=dominant,
                 source_type=source,
                 source_url=url,
                 agent_mode=random.choice(["analytical", "counselor", "brutally_honest"]),

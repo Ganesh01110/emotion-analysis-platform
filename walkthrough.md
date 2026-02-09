@@ -264,6 +264,13 @@ Project initialized with commits starting from **February 4th, 2026**:
 
 ## Future Enhancements
 
+- [x] **Heatmap-Trend Synchronization**: Restored the interactive link between the Heatmap and Trends. Selecting a tile now fetches a contextual 7-day window.
+- [x] **Fixed Emotion Filtering**: Converted `dominant_emotion` from a Python property to a database column. This enabled server-side filtering on the History page.
+- [x] **Database Migration**: Successfully migrated 120+ existing records to the new schema without data loss.
+- [x] **Plutchik Heatmap Colors**: Heatmap cells now strictly follow Plutchik standard colors based on the dominant emotion of the day.
+- [x] **Empty State CTAs**: Integrated inviting "Start your first reflection" prompts for new users with no history.
+- [x] **Improved Chart Responsiveness**: Added horizontal scrolling and minimum widths to the emotional trend charts to ensure readability on mobile devices.
+- [x] **Implemented Server-Side Pagination**: Updated the frontend and backend to support efficient data loading with page numbers and limits.
 - [ ] Voice input for thought journaling
 - [ ] Multi-language support
 - [ ] Advanced pattern recognition with ML

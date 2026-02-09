@@ -48,6 +48,9 @@ class Analysis(Base):
     # Emotion scores (8-emotion JSON)
     emotion_scores = Column(JSON, nullable=False)
     
+    # Dominant emotion (cached for filtering)
+    dominant_emotion = Column(String(20), nullable=False, index=True)
+    
     # Source information
     source_type = Column(Enum(SourceType), nullable=False)
     source_url = Column(String(512), nullable=True)
@@ -63,10 +66,3 @@ class Analysis(Base):
     
     def __repr__(self):
         return f"<Analysis(id={self.id}, user_id={self.user_id}, timestamp={self.timestamp})>"
-    
-    @property
-    def dominant_emotion(self) -> str:
-        """Get the dominant emotion from scores"""
-        if not self.emotion_scores:
-            return "unknown"
-        return max(self.emotion_scores.items(), key=lambda x: x[1])[0]

@@ -104,31 +104,44 @@ export default function HistoryPage() {
                     </div>
 
                     {/* Activity Heatmap */}
-                    <div className="card mb-6">
+                    <div className="card mb-6 overflow-hidden">
                         <div className="flex items-center justify-between mb-4">
-                            <h3 className="font-semibold text-xs tracking-wider text-[var(--text-secondary)]">ACTIVITY OVERVIEW</h3>
+                            <h3 className="font-semibold text-xs tracking-wider text-[var(--text-secondary)] uppercase">Emotional Activity Overview</h3>
                             <div className="text-[10px] text-[var(--text-secondary)] font-medium">Last 6 Months</div>
                         </div>
-                        <DynamicActivityHeatmap data={heatmapData} width={800} height={140} />
-                        <div className="flex items-center gap-4 mt-6 text-[10px] text-[var(--text-secondary)]">
-                            <span className="font-bold">LESS</span>
-                            <div className="flex gap-1">
-                                {[0, 0.25, 0.5, 0.75, 1].map((intensity) => (
-                                    <div
-                                        key={intensity}
-                                        className="w-3.5 h-3.5 rounded-sm"
-                                        style={{
-                                            backgroundColor:
-                                                intensity === 0
-                                                    ? 'var(--bg-secondary)'
-                                                    : `color-mix(in srgb, var(--accent-green) ${intensity * 100}%, var(--bg-secondary))`,
-                                            opacity: intensity === 0 ? 0.3 : 1
-                                        }}
-                                    />
-                                ))}
+                        <DynamicActivityHeatmap data={heatmapData} emotionColors={emotionColors} width={800} height={140} />
+
+                        {heatmapData.length > 0 && (
+                            <div className="flex flex-wrap items-center gap-x-6 gap-y-2 mt-6 p-4 bg-[var(--bg-secondary)]/30 rounded-xl border border-[var(--border-color)]/50">
+                                <div className="flex items-center gap-2 text-[10px] text-[var(--text-secondary)]">
+                                    <span className="font-bold">INTENSITY:</span>
+                                    <div className="flex gap-1">
+                                        {[0.1, 0.4, 0.7, 1.0].map((v) => (
+                                            <div
+                                                key={v}
+                                                className="w-3 h-3 rounded-[2px]"
+                                                style={{
+                                                    backgroundColor: 'var(--accent-green)',
+                                                    opacity: 0.3 + (v * 0.7)
+                                                }}
+                                            />
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center gap-2 text-[10px] text-[var(--text-secondary)]">
+                                    <span className="font-bold">COLORS:</span>
+                                    <div className="flex flex-wrap gap-2">
+                                        {['joy', 'trust', 'fear', 'sadness', 'anger'].map(emo => (
+                                            <div key={emo} className="flex items-center gap-1">
+                                                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: emotionColors[emo] }} />
+                                                <span className="uppercase">{emo}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
                             </div>
-                            <span className="font-bold">MORE</span>
-                        </div>
+                        )}
                     </div>
 
                     {/* Tabs & Search */}
