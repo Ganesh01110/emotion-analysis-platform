@@ -1,6 +1,7 @@
 """
 FastAPI Backend for Emotion Analysis Web App
 Main application entry point with Hugging Face model initialization
+Deploy: Hugging Face Spaces
 """
 
 from fastapi import FastAPI
