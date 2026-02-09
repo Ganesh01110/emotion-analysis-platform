@@ -135,7 +135,5 @@ jobs:
           webhook-url: ${{ secrets.DISCORD_WEBHOOK_URL }}
           content: "🚀 CI/CD Pipeline Finished for Emotion Analysis App!"
           embed-title: "Workflow Status: ${{ needs.docker-build.result }}"
-          severity: "${{ contains(needs.*.result, 'failure') && 'error' || 'info' }}"
-          details: "Build Result: ${{ contains(needs.*.result, 'failure') && 'FAILED' || 'SUCCESS' }}"
-          embed-description: "Commit: ${{ github.sha }} by ${{ github.actor }}"
+          embed-description: "Build Result: ${{ needs.docker-build.result }}\nCommit: ${{ github.sha }} by ${{ github.actor }}"
           embed-color: ${{ needs.docker-build.result == 'success' && 65280 || 16711680 }} # Green for success, Red for failure
