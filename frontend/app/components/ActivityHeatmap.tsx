@@ -13,107 +13,135 @@ interface ActivityData {
 
 interface ActivityHeatmapProps {
     data: ActivityData[];
+    onDateClick?: (date: string) => void;
     width?: number;
     height?: number;
 }
 
-export default function ActivityHeatmap({ data, width = 800, height = 150 }: ActivityHeatmapProps) {
+export default function ActivityHeatmap({ data, onDateClick, width = 700, height = 140 }: ActivityHeatmapProps) {
     const svgRef = useRef<SVGSVGElement>(null);
 
     useEffect(() => {
-        if (!svgRef.current || !data.length) return;
+        if (!svgRef.current) return;
 
         // Clear previous chart
         d3.select(svgRef.current).selectAll('*').remove();
 
-        const cellSize = 15;
+        const cellSize = 12;
         const cellPadding = 3;
-        const weeksToShow = 16;
+        const dayLabelWidth = 30;
+        const monthLabelHeight = 20;
 
-        // Create SVG
-        const svg = d3
-            .select(svgRef.current)
-            .attr('width', width)
-            .attr('height', height);
+        // Calculate weeks (GitHub style: columns are weeks, rows are days of week)
+        const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-        // Color scale
+        // Intensity color scale
         const colorScale = d3
             .scaleLinear<string>()
             .domain([0, 0.25, 0.5, 0.75, 1])
             .range([
                 'var(--bg-secondary)',
-                '#c6e5d9',
+                'var(--accent-green-low, #c6e5d9)',
                 'var(--accent-green)',
-                '#4a7c59',
-                '#2d4a36',
+                'var(--accent-green-high, #2d4a36)',
+                '#1d3324',
             ]);
 
-        // Group data by week
-        const weeks: ActivityData[][] = [];
-        for (let i = 0; i < weeksToShow; i++) {
-            weeks.push(data.slice(i * 7, (i + 1) * 7));
+        // Process data into a map for easy lookup
+        const dataMap = new Map(data.map(d => [d.date, d]));
+
+        // Generate dates for the last 6 months
+        const endDate = new Date();
+        endDate.setHours(23, 59, 59, 999);
+
+        // Align startDate to the Monday of the week ~6 months ago
+        const startDate = new Date();
+        startDate.setDate(endDate.getDate() - (26 * 7));
+        const dayOffset = (startDate.getDay() + 6) % 7; // distance to Monday
+        startDate.setDate(startDate.getDate() - dayOffset);
+        startDate.setHours(0, 0, 0, 0);
+
+        const dates: Date[] = [];
+        for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+            dates.push(new Date(d));
         }
 
-        // Draw cells
-        weeks.forEach((week, weekIndex) => {
-            week.forEach((day, dayIndex) => {
-                const x = weekIndex * (cellSize + cellPadding);
-                const y = dayIndex * (cellSize + cellPadding);
+        const totalWeeks = Math.ceil(dates.length / 7) + 1;
+        const requiredWidth = totalWeeks * (cellSize + cellPadding) + dayLabelWidth + 20;
 
-                svg
-                    .append('rect')
-                    .attr('x', x)
-                    .attr('y', y)
-                    .attr('width', cellSize)
-                    .attr('height', cellSize)
-                    .attr('rx', 3)
-                    .attr('fill', colorScale(day.intensity))
-                    .style('cursor', 'pointer')
-                    .on('mouseover', function (event) {
-                        d3.select(this).attr('stroke', 'var(--accent-yellow)').attr('stroke-width', 2);
+        const svg = d3
+            .select(svgRef.current)
+            .attr('width', requiredWidth)
+            .attr('height', height)
+            .append('g')
+            .attr('transform', `translate(${dayLabelWidth}, ${monthLabelHeight})`);
 
-                        // Show tooltip
-                        const tooltip = svg
-                            .append('text')
-                            .attr('class', 'tooltip')
-                            .attr('x', x + cellSize / 2)
-                            .attr('y', y - 5)
-                            .attr('text-anchor', 'middle')
-                            .attr('font-size', '11px')
-                            .attr('font-weight', 'bold')
-                            .attr('fill', 'var(--text-primary)')
-                            .text(`${day.count} entries`);
-                    })
-                    .on('mouseout', function () {
-                        d3.select(this).attr('stroke', 'none');
-                        svg.selectAll('.tooltip').remove();
-                    });
-            });
-        });
-
-        // Add day labels
-        const days = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
-        days.forEach((day, i) => {
+        // Draw day labels
+        dayNames.forEach((day, i) => {
             if (i % 2 === 0) {
-                // Only show every other day to avoid crowding
-                svg
-                    .append('text')
-                    .attr('x', -25)
+                svg.append('text')
+                    .attr('x', -5)
                     .attr('y', i * (cellSize + cellPadding) + cellSize / 2)
                     .attr('text-anchor', 'end')
-                    .attr('dominant-baseline', 'middle')
-                    .attr('font-size', '10px')
+                    .attr('alignment-baseline', 'middle')
+                    .attr('font-size', '9px')
                     .attr('fill', 'var(--text-secondary)')
                     .text(day);
             }
         });
 
-    }, [data, width, height]);
+        // Draw cells and look for month changes
+        let currentMonth = -1;
+        dates.forEach((date) => {
+            // Calculate position based on the number of days since startDate
+            const diffDays = Math.floor((date.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+            const weekIndex = Math.floor(diffDays / 7);
+            const dayIndex = (date.getDay() + 6) % 7; // Monday is 0, Sunday is 6
+
+            // Local date string lookup (YYYY-MM-DD)
+            const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+            const dayData = dataMap.get(dateStr) || { date: dateStr, count: 0, intensity: 0 };
+
+            // Draw month label if month changes
+            if (date.getMonth() !== currentMonth) {
+                currentMonth = date.getMonth();
+                svg.append('text')
+                    .attr('x', weekIndex * (cellSize + cellPadding))
+                    .attr('y', -8)
+                    .attr('font-size', '10px')
+                    .attr('font-weight', 'bold')
+                    .attr('fill', 'var(--text-secondary)')
+                    .text(months[currentMonth]);
+            }
+
+            svg.append('rect')
+                .attr('x', weekIndex * (cellSize + cellPadding))
+                .attr('y', dayIndex * (cellSize + cellPadding))
+                .attr('width', cellSize)
+                .attr('height', cellSize)
+                .attr('rx', 2)
+                .attr('fill', dayData.count > 0 ? colorScale(dayData.intensity) : 'var(--bg-secondary)')
+                .attr('opacity', 1)
+                .style('cursor', 'pointer')
+                .on('mouseover', function () {
+                    d3.select(this)
+                        .attr('stroke', 'var(--accent-yellow)')
+                        .attr('stroke-width', 1.5);
+                })
+                .on('mouseout', function () {
+                    d3.select(this).attr('stroke', 'none');
+                })
+                .on('click', () => {
+                    if (onDateClick) onDateClick(dateStr);
+                });
+        });
+
+    }, [data, onDateClick, width, height]);
 
     return (
-        <div className="activity-heatmap">
+        <div className="activity-heatmap-container overflow-x-auto scrollbar-hide pb-2">
             <svg ref={svgRef}></svg>
         </div>
     );
 }
-

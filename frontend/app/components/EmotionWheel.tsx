@@ -80,6 +80,23 @@ export default function EmotionWheel({ scores, width = 400, height = 400 }: Emot
             .append('g')
             .attr('class', 'arc');
 
+        // Center text reference
+        const centerText = svg
+            .append('text')
+            .attr('text-anchor', 'middle')
+            .attr('font-size', '16px')
+            .attr('font-weight', 'bold')
+            .attr('fill', 'var(--text-primary)')
+            .text('Emotions');
+
+        const centerSubText = svg
+            .append('text')
+            .attr('dy', '1.5em')
+            .attr('text-anchor', 'middle')
+            .attr('font-size', '12px')
+            .attr('fill', 'var(--text-secondary)')
+            .text('');
+
         // Add paths
         arcs
             .append('path')
@@ -88,12 +105,15 @@ export default function EmotionWheel({ scores, width = 400, height = 400 }: Emot
             .attr('stroke', 'var(--bg-primary)')
             .attr('stroke-width', 2)
             .style('opacity', 0.8)
-            .on('mouseover', function (event, d) {
+            .on('mouseover', function (event, d: any) {
                 d3.select(this)
                     .transition()
                     .duration(200)
                     .style('opacity', 1)
                     .attr('transform', 'scale(1.05)');
+
+                centerText.text(d.data.emotion.toUpperCase());
+                centerSubText.text(`${(d.data.value * 100).toFixed(1)}%`);
             })
             .on('mouseout', function () {
                 d3.select(this)
@@ -101,29 +121,25 @@ export default function EmotionWheel({ scores, width = 400, height = 400 }: Emot
                     .duration(200)
                     .style('opacity', 0.8)
                     .attr('transform', 'scale(1)');
+
+                centerText.text('Emotions');
+                centerSubText.text('');
             });
 
-        // Add labels
+        // Add labels (only for slices > 8%)
         arcs
+            .filter((d) => (d.endAngle - d.startAngle) > 0.4) // Roughly > 6-8% of the circle
             .append('text')
             .attr('transform', (d) => {
                 const [x, y] = arc.centroid(d);
                 return `translate(${x}, ${y})`;
             })
             .attr('text-anchor', 'middle')
-            .attr('font-size', '12px')
+            .attr('font-size', '11px')
             .attr('font-weight', 'bold')
             .attr('fill', 'white')
+            .style('pointer-events', 'none')
             .text((d) => d.data.emotion.charAt(0).toUpperCase() + d.data.emotion.slice(1));
-
-        // Add center text
-        svg
-            .append('text')
-            .attr('text-anchor', 'middle')
-            .attr('font-size', '16px')
-            .attr('font-weight', 'bold')
-            .attr('fill', 'var(--text-primary)')
-            .text('Emotions');
 
     }, [scores, width, height]);
 
