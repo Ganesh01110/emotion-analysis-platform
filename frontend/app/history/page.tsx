@@ -4,6 +4,7 @@
 import { useState, useEffect } from 'react';
 import Navigation from '../components/Navigation';
 import UserHeader from '../components/UserHeader';
+import Footer from '../components/Footer';
 import ActivityHeatmap from '../components/ActivityHeatmap';
 import { Search, Filter, Calendar, MessageSquare, Globe, AlignLeft, PieChart, Activity, Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
 import dynamic from 'next/dynamic';
@@ -575,7 +576,10 @@ export default function HistoryPage() {
                         </div>
                     </div>
                 )}
+
+                <Footer />
             </main>
+
         </div>
     );
 }

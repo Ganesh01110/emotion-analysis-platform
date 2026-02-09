@@ -5,6 +5,7 @@
 import { useState, useEffect } from 'react';
 import Navigation from '../components/Navigation';
 import UserHeader from '../components/UserHeader';
+import Footer from '../components/Footer';
 import { useAuth } from '../hooks/useAuth';
 import dynamic from 'next/dynamic';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -167,7 +168,7 @@ export default function DashboardPage() {
             {/* Main Content */}
             <main className="md:ml-60 min-h-screen">
                 {/* Header */}
-                <header className="mb-4">
+                <header className="sticky top-0 z-10 mb-4 bg-[var(--bg-primary)]">
                     <UserHeader
                         displayName={getDisplayName()}
                         subtitle="Welcome to your emotional sanctuary. How can we support you today?"
@@ -399,6 +400,7 @@ export default function DashboardPage() {
                         )}
                     </div>
                 </div>
+                <Footer />
             </main>
         </div>
     );
