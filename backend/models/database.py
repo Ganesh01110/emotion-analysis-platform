@@ -42,8 +42,8 @@ class Analysis(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     
-    # Encrypted thought text
-    encrypted_text = Column(Text, nullable=False)
+    # Encrypted thought text (Optional for URL analyses)
+    encrypted_text = Column(Text, nullable=True)
     
     # Emotion scores (8-emotion JSON)
     emotion_scores = Column(JSON, nullable=False)

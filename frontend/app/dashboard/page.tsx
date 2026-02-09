@@ -2,14 +2,13 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Navigation from '../components/Navigation';
 import UserHeader from '../components/UserHeader';
 import { useAuth } from '../hooks/useAuth';
 import dynamic from 'next/dynamic';
 import LoadingSpinner from '../components/LoadingSpinner';
-import { Sparkles, Link as LinkIcon, Mic } from 'lucide-react';
-
+import { Sparkles, Link as LinkIcon, Mic, PieChart, Activity, AlignLeft } from 'lucide-react';
 const EmotionWheel = dynamic(() => import('../components/EmotionWheel'), {
     loading: () => <LoadingSpinner />,
     ssr: false
@@ -18,14 +17,52 @@ const SpiderChart = dynamic(() => import('../components/SpiderChart'), {
     loading: () => <LoadingSpinner />,
     ssr: false
 });
+const BarGraph = dynamic(() => import('../components/BarGraph'), {
+    loading: () => <LoadingSpinner />,
+    ssr: false
+});
+const ActivityHeatmap = dynamic(() => import('../components/ActivityHeatmap'), {
+    ssr: false
+});
+const EmotionTrendChart = dynamic(() => import('../components/EmotionTrendChart'), {
+    ssr: false
+});
 
 export default function DashboardPage() {
     const { getDisplayName } = useAuth();
-    const [activeTab, setActiveTab] = useState<'thoughts' | 'media'>('thoughts');
+    const [activeTab, setActiveTab] = useState<'thoughts' | 'media' | 'url'>('thoughts');
     const [text, setText] = useState('');
+    const [url, setUrl] = useState('');
     const [agentMode, setAgentMode] = useState('analytical');
     const [analysis, setAnalysis] = useState<any>(null);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
+    const [chartTab, setChartTab] = useState<'donut' | 'spider' | 'bar'>('donut');
+
+    // History states
+    const [history, setHistory] = useState<any[]>([]);
+    const [heatmapData, setHeatmapData] = useState<any[]>([]);
+    const [selectedDate, setSelectedDate] = useState<string | null>(null);
+
+    const fetchDashboardData = async () => {
+        try {
+            const [historyRes, summaryRes] = await Promise.all([
+                fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/history`),
+                fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/history/summary`)
+            ]);
+
+            if (historyRes.ok) {
+                const data = await historyRes.json();
+                setHistory(data.items || data); // Fallback for safety
+            }
+            if (summaryRes.ok) setHeatmapData(await summaryRes.json());
+        } catch (error) {
+            console.error('Error fetching dashboard data:', error);
+        }
+    };
+
+    useEffect(() => {
+        fetchDashboardData();
+    }, []);
 
     const handleAnalyze = async () => {
         if (!text.trim()) return;
@@ -41,6 +78,7 @@ export default function DashboardPage() {
             if (response.ok) {
                 const data = await response.json();
                 setAnalysis(data);
+                fetchDashboardData(); // Refresh history after analysis
             }
         } catch (error) {
             console.error('Analysis error:', error);
@@ -48,6 +86,35 @@ export default function DashboardPage() {
             setIsAnalyzing(false);
         }
     };
+
+    const handleAnalyzeMedia = async () => {
+        if (!url.trim()) return;
+
+        setIsAnalyzing(true);
+        try {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/scrape`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ url }),
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                setAnalysis(data);
+                fetchDashboardData(); // Refresh history after analysis
+            }
+        } catch (error) {
+            console.error('Media analysis error:', error);
+        } finally {
+            setIsAnalyzing(false);
+        }
+    };
+
+    // Filter history for trend chart
+    const trendData = history.map(h => ({
+        date: h.timestamp.split('T')[0],
+        scores: h.emotion_scores
+    }));
 
     return (
         <div className="min-h-screen bg-[var(--bg-primary)]">
@@ -57,20 +124,12 @@ export default function DashboardPage() {
             <main className="md:ml-60 min-h-screen">
                 <UserHeader />
 
-                <div className="p-4 md:p-6 max-w-7xl mx-auto space-y-6">
-                    {/* Header */}
-                    <div className="mb-2">
-                        <h1 className="text-2xl font-bold mb-1">
-                            Good {new Date().getHours() < 12 ? 'morning' : new Date().getHours() < 18 ? 'afternoon' : 'evening'}, {getDisplayName()}.
-                        </h1>
-                        <p className="text-sm text-[var(--text-secondary)]">The tide is calm, and your mind is at peace.</p>
-                    </div>
-
+                <div className="p-4 md:p-6 max-w-7xl mx-auto space-y-4">
                     {/* Bento Grid */}
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 md:gap-4">
                         {/* Input Card - Spans 2 columns */}
                         <div className="lg:col-span-2 card">
-                            <div className="flex gap-4 mb-4 border-b border-[var(--border-color)]">
+                            <div className="flex gap-4 mb-3 border-b border-[var(--border-color)]">
                                 <button
                                     onClick={() => setActiveTab('thoughts')}
                                     className={`pb-3 px-4 font-semibold transition-colors ${activeTab === 'thoughts'
@@ -81,6 +140,15 @@ export default function DashboardPage() {
                                     REFLECTIONS
                                 </button>
                                 <button
+                                    onClick={() => setActiveTab('url')}
+                                    className={`pb-3 px-4 font-semibold transition-colors ${activeTab === 'url'
+                                        ? 'border-b-2 border-[var(--accent-green)] text-[var(--accent-green)]'
+                                        : 'text-[var(--text-secondary)]'
+                                        }`}
+                                >
+                                    ANALYSE MEDIA
+                                </button>
+                                <button
                                     onClick={() => setActiveTab('media')}
                                     className={`pb-3 px-4 font-semibold transition-colors ${activeTab === 'media'
                                         ? 'border-b-2 border-[var(--accent-green)] text-[var(--accent-green)]'
@@ -89,6 +157,7 @@ export default function DashboardPage() {
                                 >
                                     AUDIO JOURNAL
                                 </button>
+
                             </div>
 
                             {activeTab === 'thoughts' ? (
@@ -97,14 +166,14 @@ export default function DashboardPage() {
                                         value={text}
                                         onChange={(e) => setText(e.target.value)}
                                         placeholder="Let your thoughts flow like the tide..."
-                                        className="textarea-field mb-4"
+                                        className="textarea-field mb-3"
                                     />
-                                    <div className="flex items-center gap-4">
-                                        <button className="p-3 rounded-lg hover:bg-[var(--bg-secondary)] transition-colors">
-                                            <Mic size={20} />
+                                    <div className="flex items-center gap-3">
+                                        <button className="p-2 rounded-lg hover:bg-[var(--bg-secondary)] transition-colors">
+                                            <Mic size={18} />
                                         </button>
-                                        <button className="p-3 rounded-lg hover:bg-[var(--bg-secondary)] transition-colors">
-                                            <LinkIcon size={20} />
+                                        <button className="p-2 rounded-lg hover:bg-[var(--bg-secondary)] transition-colors">
+                                            <LinkIcon size={18} />
                                         </button>
                                         <div className="flex-1" />
                                         <select
@@ -121,8 +190,32 @@ export default function DashboardPage() {
                                             disabled={isAnalyzing || !text.trim()}
                                             className="btn-primary flex items-center gap-2"
                                         >
-                                            <Sparkles size={18} />
+                                            <Sparkles size={16} />
                                             {isAnalyzing ? 'Analyzing...' : 'ANALYZE'}
+                                        </button>
+                                    </div>
+                                </>
+                            ) : activeTab === 'url' ? (
+                                <>
+                                    <input
+                                        type="url"
+                                        value={url}
+                                        onChange={(e) => setUrl(e.target.value)}
+                                        placeholder="Paste article or media URL here..."
+                                        className="input-field mb-3"
+                                    />
+                                    <p className="text-xs text-[var(--text-secondary)] mb-3">
+                                        Analyze the emotional tone of news articles, blog posts, or any web content
+                                    </p>
+                                    <div className="flex items-center gap-3">
+                                        <div className="flex-1" />
+                                        <button
+                                            onClick={handleAnalyzeMedia}
+                                            disabled={isAnalyzing || !url.trim()}
+                                            className="btn-primary flex items-center gap-2"
+                                        >
+                                            <Sparkles size={16} />
+                                            {isAnalyzing ? 'Analyzing...' : 'ANALYZE MEDIA'}
                                         </button>
                                     </div>
                                 </>
@@ -134,23 +227,46 @@ export default function DashboardPage() {
                             )}
                         </div>
 
-                        {/* Emotion Wheel */}
+                        {/* Emotion Visualization Card */}
                         <div className="card">
-                            <div className="flex items-center justify-between mb-4">
-                                <h3 className="font-semibold">INNER BALANCE</h3>
-                                <button className="p-2 rounded-lg hover:bg-[var(--bg-secondary)] transition-colors">
-                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-                                        <circle cx="10" cy="10" r="2" />
-                                        <circle cx="10" cy="4" r="2" />
-                                        <circle cx="10" cy="16" r="2" />
-                                    </svg>
-                                </button>
+                            <div className="flex items-center justify-between mb-3">
+                                <h3 className="font-semibold text-sm">INNER BALANCE</h3>
+                                <div className="flex items-center gap-1 bg-[var(--bg-secondary)] p-1 rounded-lg">
+                                    <button
+                                        onClick={() => setChartTab('donut')}
+                                        className={`p-1.5 rounded-md transition-all ${chartTab === 'donut' ? 'bg-[var(--bg-card)] shadow-sm text-[var(--accent-green)]' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}
+                                        title="Donut Chart"
+                                    >
+                                        <PieChart size={16} />
+                                    </button>
+                                    <button
+                                        onClick={() => setChartTab('spider')}
+                                        className={`p-1.5 rounded-md transition-all ${chartTab === 'spider' ? 'bg-[var(--bg-card)] shadow-sm text-[var(--accent-green)]' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}
+                                        title="Spider Chart"
+                                    >
+                                        <Activity size={16} />
+                                    </button>
+                                    <button
+                                        onClick={() => setChartTab('bar')}
+                                        className={`p-1.5 rounded-md transition-all ${chartTab === 'bar' ? 'bg-[var(--bg-card)] shadow-sm text-[var(--accent-green)]' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}
+                                        title="Bar Graph"
+                                    >
+                                        <AlignLeft size={16} />
+                                    </button>
+                                </div>
                             </div>
                             {analysis ? (
-                                <EmotionWheel scores={analysis.emotion_scores} width={300} height={300} />
+                                <div className="transition-all duration-300">
+                                    {chartTab === 'donut' && <EmotionWheel scores={analysis.emotion_scores} width={280} height={280} />}
+                                    {chartTab === 'spider' && <SpiderChart scores={analysis.emotion_scores} width={280} height={280} />}
+                                    {chartTab === 'bar' && <BarGraph scores={analysis.emotion_scores} width={280} height={240} />}
+                                </div>
                             ) : (
-                                <div className="aspect-square flex items-center justify-center text-[var(--text-secondary)]">
-                                    <p>Analyze your thoughts to see your emotional balance</p>
+                                <div className="aspect-square flex flex-col items-center justify-center text-[var(--text-secondary)] text-center px-4">
+                                    <div className="w-16 h-16 rounded-full bg-[var(--bg-secondary)] flex items-center justify-center mb-4">
+                                        <PieChart size={32} className="opacity-20" />
+                                    </div>
+                                    <p className="text-xs">Analyze your data to visualize your emotional landscape</p>
                                 </div>
                             )}
                             {analysis && (
@@ -183,75 +299,44 @@ export default function DashboardPage() {
                             )}
                         </div>
 
-                        {/* Mindfulness Streak */}
+                        {/* Mindfulness Streak - Heatmap Card */}
                         <div className="card">
-                            <h3 className="font-semibold mb-4">MINDFULNESS STREAK</h3>
-                            <div className="grid grid-cols-7 gap-2">
-                                {Array.from({ length: 28 }).map((_, i) => (
-                                    <div
-                                        key={i}
-                                        className="aspect-square rounded bg-[var(--bg-secondary)]"
-                                        style={{
-                                            backgroundColor: i < 15 ? 'var(--accent-green)' : 'var(--bg-secondary)',
-                                            opacity: i < 15 ? 0.3 + (i / 28) * 0.7 : 0.3,
-                                        }}
-                                    />
-                                ))}
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="font-semibold text-xs tracking-wider text-[var(--text-secondary)]">MINDFULNESS STREAK</h3>
+                                <div className="text-[10px] text-[var(--text-secondary)] font-medium">Last 6 Months</div>
                             </div>
-                            <p className="text-sm text-[var(--text-secondary)] mt-4 italic">
-                                Finding flow in consistency.
+                            <ActivityHeatmap
+                                data={heatmapData}
+                                width={300}
+                                height={130}
+                                onDateClick={(date) => setSelectedDate(date)}
+                            />
+                            <p className="text-[10px] text-[var(--text-secondary)] mt-4 italic opacity-80">
+                                {selectedDate ? `Viewing patterns for ${new Date(selectedDate).toLocaleDateString()}` : "Click a tile to explore daily patterns."}
                             </p>
                         </div>
 
-                        {/* Sentiment Drift */}
-                        <div className="card">
-                            <h3 className="font-semibold mb-4">SENTIMENT DRIFT</h3>
-                            <div className="flex gap-2 mb-4">
-                                <span className="px-3 py-1 rounded-full text-xs bg-[var(--emotion-joy)] bg-opacity-20 text-[var(--emotion-joy)]">
-                                    JOY
-                                </span>
-                                <span className="px-3 py-1 rounded-full text-xs bg-[var(--bg-secondary)] text-[var(--text-secondary)]">
-                                    CALM
-                                </span>
-                                <span className="px-3 py-1 rounded-full text-xs bg-[var(--bg-secondary)] text-[var(--text-secondary)]">
-                                    SERENITY
-                                </span>
-                                <span className="px-3 py-1 rounded-full text-xs bg-[var(--bg-secondary)] text-[var(--text-secondary)]">
-                                    GRO
-                                </span>
-                            </div>
-                            {analysis ? (
-                                <SpiderChart scores={analysis.emotion_scores} width={250} height={200} />
-                            ) : (
-                                <div className="h-48 flex items-center justify-center text-[var(--text-secondary)]">
-                                    <p>Weekly sentiment visualization</p>
-                                </div>
-                            )}
-                            <div className="flex justify-between text-xs text-[var(--text-secondary)] mt-2">
-                                <span>MON</span>
-                                <span>WED</span>
-                                <span>FRI</span>
-                                <span>SUN</span>
-                            </div>
-                        </div>
-
-                        {/* Breathing Space */}
-                        <div className="card bg-gradient-to-br from-[var(--accent-green)] to-[var(--accent-yellow)] text-white">
-                            <h3 className="font-semibold mb-2">BREATHING SPACE</h3>
-                            <p className="text-sm mb-4 opacity-90">Quiet the noise around you.</p>
-                            <div className="flex items-center justify-center my-8">
-                                <div className="w-20 h-20 rounded-full bg-white bg-opacity-30 flex items-center justify-center">
-                                    <svg width="40" height="40" viewBox="0 0 40 40" fill="white">
-                                        <path d="M20 5 L20 15 M20 25 L20 35 M5 20 L15 20 M25 20 L35 20" stroke="white" strokeWidth="2" strokeLinecap="round" />
-                                    </svg>
+                        {/* Emotion Trends - Wide Card */}
+                        <div className="md:col-span-2 card">
+                            <div className="flex items-center justify-between mb-2">
+                                <h3 className="font-semibold text-xs tracking-wider text-[var(--text-secondary)] uppercase">Emotional Resonance</h3>
+                                <div className="flex items-center gap-2">
+                                    <span className="w-2 h-2 rounded-full bg-[var(--accent-green)] animate-pulse" />
+                                    <span className="text-[10px] font-bold text-[var(--text-secondary)]">LIVE TRENDS</span>
                                 </div>
                             </div>
-                            <button className="w-full py-2 bg-white bg-opacity-20 rounded-lg hover:bg-opacity-30 transition-colors flex items-center justify-center gap-2">
-                                <svg width="16" height="16" viewBox="0 0 16 16" fill="white">
-                                    <circle cx="8" cy="8" r="6" />
-                                </svg>
-                                <span className="text-sm font-semibold">5 MIN GUIDE</span>
-                            </button>
+                            <div className="mt-4">
+                                {trendData.length > 0 ? (
+                                    <EmotionTrendChart data={trendData} />
+                                ) : (
+                                    <div className="h-[200px] flex flex-col items-center justify-center text-center px-10">
+                                        <Sparkles size={32} className="text-[var(--text-secondary)] opacity-10 mb-4" />
+                                        <p className="text-xs text-[var(--text-secondary)] opacity-60">
+                                            Logs your first thoughts to begin charting your emotional landscape over time.
+                                        </p>
+                                    </div>
+                                )}
+                            </div>
                         </div>
 
                         {/* Agent Response */}

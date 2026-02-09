@@ -7,6 +7,9 @@ from fastapi import APIRouter, HTTPException, Depends, Header
 from pydantic import BaseModel, HttpUrl
 from typing import Optional, Dict, List
 import logging
+from sqlalchemy.orm import Session
+from models.connection import get_db
+from models.database import Analysis, User, SourceType
 
 logger = logging.getLogger(__name__)
 
@@ -140,6 +143,7 @@ def generate_agent_response(scores: EmotionScores, mode: str, dominant: str) -> 
 @router.post("/analyze", response_model=AnalysisResponse)
 async def analyze_text(
     request: TextAnalysisRequest,
+    db: Session = Depends(get_db),
     classifier = Depends(get_emotion_classifier)
 ):
     """
@@ -165,13 +169,40 @@ async def analyze_text(
         # Extract trigger words (simplified - can be enhanced with NER)
         trigger_words = [word for word in request.text.split() if len(word) > 5][:5]
         
-        return AnalysisResponse(
+        response_data = AnalysisResponse(
             emotion_scores=emotion_scores,
             dominant_emotion=dominant_emotion,
             intensity=intensity,
             agent_response=agent_response,
             trigger_words=trigger_words
         )
+
+        # PERSIST TO DATABASE
+        try:
+            user = db.query(User).first()
+            if not user:
+                user = User(
+                    firebase_uid="default_test_user",
+                    email="test@example.com",
+                    profile_data={"name": "Test User"}
+                )
+                db.add(user)
+                db.commit()
+                db.refresh(user)
+            
+            new_analysis = Analysis(
+                user_id=user.id,
+                encrypted_text=request.text, # Storing raw for now as per user request
+                emotion_scores=emotion_scores.model_dump(),
+                source_type=SourceType.TEXT,
+                agent_mode=request.agent_mode
+            )
+            db.add(new_analysis)
+            db.commit()
+        except Exception as db_error:
+            logger.error(f"Database error: {db_error}")
+
+        return response_data
         
     except Exception as e:
         logger.error(f"Analysis error: {e}")
@@ -181,10 +212,11 @@ async def analyze_text(
 @router.post("/scrape", response_model=AnalysisResponse)
 async def analyze_media(
     request: MediaAnalysisRequest,
+    db: Session = Depends(get_db),
     classifier = Depends(get_emotion_classifier)
 ):
     """
-    Scrape URL and analyze content (one-time, no storage)
+    Scrape URL and analyze content and store results in DB
     """
     try:
         from utils.scraper import scrape_article
@@ -196,12 +228,14 @@ async def analyze_media(
             raise HTTPException(status_code=400, detail="Could not extract text from URL")
         
         # Analyze the scraped text
-        raw_results = classifier(article_text[:512])[0]  # Limit to 512 chars for speed
+        # Limit to 512 chars for speed and consistent results
+        raw_results = classifier(article_text[:512])[0]
         
         emotion_scores = normalize_emotion_scores(raw_results)
         dominant_emotion, intensity = get_dominant_emotion(emotion_scores)
         
-        return AnalysisResponse(
+        # Prepare response
+        response_data = AnalysisResponse(
             emotion_scores=emotion_scores,
             dominant_emotion=dominant_emotion,
             intensity=intensity,
@@ -209,8 +243,150 @@ async def analyze_media(
             trigger_words=None
         )
         
+        # PERSIST TO DATABASE
+        try:
+            # For now, get or create a default user for testing
+            # In a real app, this would come from the authenticated user context
+            user = db.query(User).first()
+            if not user:
+                user = User(
+                    firebase_uid="default_test_user",
+                    email="test@example.com",
+                    profile_data={"name": "Test User"}
+                )
+                db.add(user)
+                db.commit()
+                db.refresh(user)
+            
+            # Create analysis record without text content (saves space)
+            new_analysis = Analysis(
+                user_id=user.id,
+                encrypted_text=None,  # Not storing large content as per requirements
+                emotion_scores=emotion_scores.model_dump(),
+                source_type=SourceType.URL,
+                source_url=str(request.url),
+                agent_mode="analytical"
+            )
+            
+            db.add(new_analysis)
+            db.commit()
+            logger.info(f"✅ Saved media analysis for URL: {request.url}")
+            
+        except Exception as db_error:
+            # Log DB error but don't fail the request if analysis succeeded
+            logger.error(f"❌ Database focus error: {db_error}")
+            # We still return the response_data because the analysis was successful
+            
+        return response_data
+        
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Media analysis error: {e}")
         raise HTTPException(status_code=500, detail=f"Media analysis failed: {str(e)}")
+
+
+@router.get("/history")
+async def get_history(
+    page: int = 1,
+    limit: int = 10,
+    source_type: Optional[str] = None,
+    emotion: Optional[str] = None,
+    search: Optional[str] = None,
+    db: Session = Depends(get_db)
+):
+    """Fetch paginated and filtered analysis history"""
+    try:
+        query = db.query(Analysis)
+        
+        # Filtering
+        if source_type:
+            query = query.filter(Analysis.source_type == source_type)
+        if emotion and emotion != 'all':
+            query = query.filter(Analysis.dominant_emotion == emotion)
+        if search:
+            search_query = f"%{search}%"
+            # Search in text or URL
+            query = query.filter(
+                (Analysis.encrypted_text.ilike(search_query)) | 
+                (Analysis.source_url.ilike(search_query))
+            )
+
+        # Count total before limit/offset
+        total = query.count()
+        pages = (total + limit - 1) // limit
+        
+        # Paginate
+        offset = (page - 1) * limit
+        analyses = query.order_by(Analysis.timestamp.desc()).limit(limit).offset(offset).all()
+        
+        return {
+            "items": [
+                {
+                    "id": a.id,
+                    "timestamp": a.timestamp,
+                    "emotion_scores": a.emotion_scores,
+                    "dominant_emotion": a.dominant_emotion,
+                    "source_type": a.source_type,
+                    "source_url": a.source_url,
+                    "text": a.encrypted_text
+                } for a in analyses
+            ],
+            "total": total,
+            "page": page,
+            "limit": limit,
+            "pages": pages
+        }
+    except Exception as e:
+        logger.error(f"History fetch error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch history")
+
+
+@router.get("/history/summary")
+async def get_history_summary(db: Session = Depends(get_db)):
+    """Fetch count and intensity summary per day for heatmap"""
+    try:
+        from sqlalchemy import func, cast, Float
+        
+        # Dialect-specific intensity calculation
+        dialect = db.bind.dialect.name
+        if dialect == 'postgresql':
+            intensity_col = cast(Analysis.emotion_scores['joy'].astext, Float)
+        else:
+            intensity_col = func.json_extract(Analysis.emotion_scores, '$.joy')
+
+        # Group by date
+        results = db.query(
+            func.date(Analysis.timestamp).label('date'),
+            func.count(Analysis.id).label('count'),
+            func.avg(intensity_col).label('intensity')
+        ).group_by(func.date(Analysis.timestamp)).all()
+        
+        return [
+            {
+                "date": str(r.date),
+                "count": r.count,
+                "intensity": float(r.intensity or 0)
+            } for r in results
+        ]
+    except Exception as e:
+        logger.error(f"Summary fetch error: {e}")
+        # Fallback: Pull last 1000 records and aggregate in Python if SQL fails
+        try:
+            from collections import defaultdict
+            analyses = db.query(Analysis).order_by(Analysis.timestamp.desc()).limit(1000).all()
+            stats = defaultdict(lambda: {"count": 0, "sum": 0})
+            for a in analyses:
+                d = a.timestamp.date().isoformat()
+                stats[d]["count"] += 1
+                stats[d]["sum"] += a.emotion_scores.get("joy", 0)
+            
+            return [
+                {
+                    "date": d,
+                    "count": v["count"],
+                    "intensity": v["sum"] / v["count"]
+                } for d, v in stats.items()
+            ]
+        except:
+            return []
