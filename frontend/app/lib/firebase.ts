@@ -13,9 +13,18 @@ const firebaseConfig = {
     measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
 
-// Initialize Firebase
-const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
-const auth = getAuth(app);
+// Initialize Firebase only if config is valid
+const isConfigValid = firebaseConfig.apiKey && firebaseConfig.apiKey !== 'undefined';
+
+const app = getApps().length === 0
+    ? (isConfigValid ? initializeApp(firebaseConfig) : null)
+    : getApps()[0];
+
+const auth = app ? getAuth(app) : {
+    currentUser: null,
+    onAuthStateChanged: () => () => { },
+    signOut: async () => { },
+} as any;
 
 let analytics;
 if (typeof window !== 'undefined') {

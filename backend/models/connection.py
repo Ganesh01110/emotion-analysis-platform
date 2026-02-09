@@ -10,8 +10,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Database URL from environment
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://user:password@localhost:5432/emotion_analysis")
+# Database URL from environment (default to SQLite for local development/testing)
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./test.db")
 
 # Create engine
 engine = create_engine(

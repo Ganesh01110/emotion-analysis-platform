@@ -181,7 +181,7 @@ export default function EmotionTrendChart({ data, selectedDate, width = 800, hei
             .duration(500)
             .attr('r', 4);
 
-    }, [data, selectedEmotion, width, height]);
+    }, [data, selectedEmotion, width, height, selectedDate]);
 
     return (
         <div className="emotion-trend-chart w-full overflow-hidden">

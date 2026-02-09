@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import {
     Sparkles, Activity, Palette, BookOpen,
     Dumbbell, Timer, X, Play, Pause, RotateCcw,
@@ -59,7 +59,7 @@ export default function SelfCareToolbox() {
             }, 1000);
         }
         return () => clearInterval(interval);
-    }, [isActive, breathPhase, selectedTool, targetSeconds]);
+    }, [isActive, breathPhase, selectedTool, targetSeconds, handleStop]);
 
     // Initialize Canvas
     useEffect(() => {
@@ -80,7 +80,7 @@ export default function SelfCareToolbox() {
         }
     }, [selectedTool, isFinished]);
 
-    const handleStop = async () => {
+    const handleStop = useCallback(async () => {
         setIsActive(false);
         setIsFinished(true);
 
@@ -97,7 +97,7 @@ export default function SelfCareToolbox() {
         } catch (error) {
             console.error('Error saving activity:', error);
         }
-    };
+    }, [selectedTool, seconds]);
 
     const reset = () => {
         if (isActive && !confirm("Stop current session?")) return;
