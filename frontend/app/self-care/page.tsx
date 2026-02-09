@@ -4,7 +4,7 @@ import Navigation from '../components/Navigation';
 import UserHeader from '../components/UserHeader';
 import dynamic from 'next/dynamic';
 import LoadingSpinner from '../components/LoadingSpinner';
-import { Heart, Music, Book, Coffee, Sparkles, BookOpen } from 'lucide-react';
+import { Heart, Music, Book, Coffee, Sparkles, BookOpen, Activity } from 'lucide-react';
 import affirmationsData from '../data/affirmations.json';
 import { useState, useEffect } from 'react';
 import SelfCareToolbox from '../components/SelfCareToolbox';
