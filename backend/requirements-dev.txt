@@ -1,0 +1,5 @@
+# Development & Testing Tools
+pytest
+pytest-cov
+pylint
+flake8
