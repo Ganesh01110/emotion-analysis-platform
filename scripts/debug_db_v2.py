@@ -2,9 +2,13 @@ import os
 from dotenv import load_dotenv
 load_dotenv('backend/.env')
 import sys
-sys.path.append('backend')
-from models.database import Analysis, MoodLog
-from models.connection import SessionLocal
+# Add project root directory to path (parent of scripts folder)
+current_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.dirname(current_dir)
+sys.path.append(project_root)
+
+from backend.models.database import Analysis, MoodLog
+from backend.models.connection import SessionLocal
 from datetime import datetime, timedelta
 
 db = SessionLocal()

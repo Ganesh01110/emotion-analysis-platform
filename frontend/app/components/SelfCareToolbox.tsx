@@ -159,114 +159,118 @@ export default function SelfCareToolbox() {
 
         return (
             <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/40 backdrop-blur-[2px] animate-in fade-in duration-300">
-                <div className="bg-[var(--bg-card)]/95 backdrop-blur-xl w-full max-w-sm rounded-[1.5rem] overflow-hidden shadow-2xl border border-white/10 ring-1 ring-black/5">
+                <div className={`bg-[var(--bg-card)]/95 backdrop-blur-xl w-full ${selectedTool === 'doodle' ? 'max-w-4xl' : 'max-w-sm'} rounded-[1.5rem] overflow-hidden shadow-2xl border border-white/10 ring-1 ring-black/5`}>
                     <div className={`h-1 transition-all duration-1000 bg-gradient-to-r ${currentTool?.color}`} style={{ width: targetSeconds > 0 ? `${(seconds / targetSeconds) * 100}%` : '100%' }} />
 
-                    <div className="p-6 flex flex-col items-center text-center relative">
-                        <button onClick={reset} className="absolute top-3 right-3 p-1.5 text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-secondary)] rounded-full transition-colors">
+                    <div className={`p-6 ${selectedTool === 'doodle' ? 'flex flex-row gap-6 items-start' : 'flex flex-col items-center'} text-center relative`}>
+                        <button onClick={reset} className="absolute top-3 right-3 p-1.5 text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-secondary)] rounded-full transition-colors z-10">
                             <X size={18} />
                         </button>
 
-                        <div className={`p-3.5 rounded-2xl bg-gradient-to-br ${currentTool?.color} text-white mb-4 shadow-lg ring-2 ring-white/10`}>
-                            {currentTool && <currentTool.icon size={22} />}
-                        </div>
+                        {/* Left Column: Controls */}
+                        <div className={`${selectedTool === 'doodle' ? 'flex flex-col items-center w-64 flex-shrink-0' : 'w-full'}`}>
+                            <div className={`p-3.5 rounded-2xl bg-gradient-to-br ${currentTool?.color} text-white mb-4 shadow-lg ring-2 ring-white/10`}>
+                                {currentTool && <currentTool.icon size={22} />}
+                            </div>
 
-                        <h2 className="text-lg font-semibold tracking-tight mb-0.5">{currentTool?.label}</h2>
-                        <p className="text-[10px] text-[var(--text-secondary)] uppercase tracking-widest font-medium opacity-60">Practice Phase</p>
+                            <h2 className="text-lg font-semibold tracking-tight mb-0.5">{currentTool?.label}</h2>
+                            <p className="text-[10px] text-[var(--text-secondary)] uppercase tracking-widest font-medium opacity-60">Practice Phase</p>
 
-                        {!isFinished ? (
-                            <>
-                                {selectedTool === 'custom' && targetSeconds === 0 ? (
-                                    <div className="w-full py-6">
-                                        <p className="text-[10px] font-semibold text-[var(--text-secondary)] mb-4 uppercase tracking-[0.2em]">Select Duration</p>
-                                        <div className="grid grid-cols-2 gap-2 mb-6">
-                                            {PRESETS.map(m => (
-                                                <button
-                                                    key={m}
-                                                    onClick={() => setTargetSeconds(m * 60)}
-                                                    className="py-3 bg-[var(--bg-secondary)]/40 border border-[var(--border-color)] rounded-xl font-semibold text-base hover:bg-[var(--accent-green)]/10 hover:border-[var(--accent-green)] transition-all"
-                                                >
-                                                    {m}m
-                                                </button>
-                                            ))}
+                            {!isFinished ? (
+                                <>
+                                    {selectedTool === 'custom' && targetSeconds === 0 ? (
+                                        <div className="w-full py-6">
+                                            <p className="text-[10px] font-semibold text-[var(--text-secondary)] mb-4 uppercase tracking-[0.2em]">Select Duration</p>
+                                            <div className="grid grid-cols-2 gap-2 mb-6">
+                                                {PRESETS.map(m => (
+                                                    <button
+                                                        key={m}
+                                                        onClick={() => setTargetSeconds(m * 60)}
+                                                        className="py-3 bg-[var(--bg-secondary)]/40 border border-[var(--border-color)] rounded-xl font-semibold text-base hover:bg-[var(--accent-green)]/10 hover:border-[var(--accent-green)] transition-all"
+                                                    >
+                                                        {m}m
+                                                    </button>
+                                                ))}
+                                            </div>
                                         </div>
-                                    </div>
-                                ) : (
-                                    <>
-                                        <div className="text-5xl font-mono font-medium my-6 text-[var(--text-primary)] tabular-nums tracking-tighter">
-                                            {formatTime(seconds, targetSeconds)}
-                                        </div>
+                                    ) : (
+                                        <>
+                                            <div className="text-5xl font-mono font-medium my-6 text-[var(--text-primary)] tabular-nums tracking-tighter">
+                                                {formatTime(seconds, targetSeconds)}
+                                            </div>
 
-                                        {selectedTool === 'breathing' && (
-                                            <div className="mb-8 flex flex-col items-center">
-                                                <div
-                                                    className="w-28 h-28 rounded-full ring-1 ring-[var(--accent-green)]/20 flex items-center justify-center transition-all duration-1000 shadow-inner"
-                                                    style={{
-                                                        transform: `scale(${breathPhase === 'inhale' ? 1.3 : breathPhase === 'exhale' ? 0.9 : 1.3})`,
-                                                        backgroundColor: 'var(--accent-green)10'
-                                                    }}
-                                                >
-                                                    <div className="flex flex-col items-center">
-                                                        <span className="text-2xl font-semibold text-[var(--accent-green)]">{breathCount}</span>
-                                                        <span className="text-[8px] uppercase font-semibold tracking-widest text-[var(--accent-green)]/50">{breathPhase}</span>
+                                            {selectedTool === 'breathing' && (
+                                                <div className="mb-8 flex flex-col items-center">
+                                                    <div
+                                                        className="w-28 h-28 rounded-full ring-1 ring-[var(--accent-green)]/20 flex items-center justify-center transition-all duration-1000 shadow-inner"
+                                                        style={{
+                                                            transform: `scale(${breathPhase === 'inhale' ? 1.3 : breathPhase === 'exhale' ? 0.9 : 1.3})`,
+                                                            backgroundColor: 'var(--accent-green)10'
+                                                        }}
+                                                    >
+                                                        <div className="flex flex-col items-center">
+                                                            <span className="text-2xl font-semibold text-[var(--accent-green)]">{breathCount}</span>
+                                                            <span className="text-[8px] uppercase font-semibold tracking-widest text-[var(--accent-green)]/50">{breathPhase}</span>
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        )}
-
-                                        {selectedTool === 'doodle' && (
-                                            <div className="w-full aspect-square bg-[var(--bg-secondary)]/30 rounded-2xl mb-6 border border-[var(--border-color)] flex items-center justify-center relative overflow-hidden shadow-inner cursor-crosshair group">
-                                                <canvas
-                                                    ref={canvasRef}
-                                                    className="absolute inset-0 touch-none"
-                                                    onMouseDown={startDrawing}
-                                                    onMouseMove={draw}
-                                                    onMouseUp={stopDrawing}
-                                                    onMouseLeave={stopDrawing}
-                                                    onTouchStart={startDrawing}
-                                                    onTouchMove={draw}
-                                                    onTouchEnd={stopDrawing}
-                                                />
-                                                <div className="absolute top-2.5 right-2.5 text-[8px] font-semibold opacity-30 group-hover:opacity-50 transition-opacity pointer-events-none uppercase tracking-widest">Zen Canvas</div>
-                                            </div>
-                                        )}
-
-                                        <div className="flex gap-2.5 w-full mt-2">
-                                            {!isActive ? (
-                                                <button
-                                                    onClick={() => setIsActive(true)}
-                                                    className="flex-1 flex items-center justify-center gap-2 py-3 bg-[var(--accent-green)] text-white rounded-xl font-semibold shadow-md shadow-green-500/10 hover:scale-[1.01] active:scale-98 transition-all text-xs tracking-wider uppercase"
-                                                >
-                                                    <Play size={16} fill="currentColor" /> START
-                                                </button>
-                                            ) : (
-                                                <button
-                                                    onClick={() => setIsActive(false)}
-                                                    className="flex-1 flex items-center justify-center gap-2 py-3 bg-[var(--bg-secondary)] text-[var(--text-primary)] rounded-xl font-semibold border border-[var(--border-color)] hover:bg-[var(--bg-card)] transition-all text-xs tracking-wider uppercase"
-                                                >
-                                                    <Pause size={16} fill="currentColor" /> PAUSE
-                                                </button>
                                             )}
 
-                                            <button
-                                                disabled={seconds === 0}
-                                                onClick={handleStop}
-                                                className={`flex-1 py-3 bg-gradient-to-br ${currentTool?.color} text-white rounded-xl font-semibold shadow-md shadow-black/10 hover:scale-[1.01] active:scale-98 transition-all disabled:opacity-20 disabled:pointer-events-none text-xs tracking-wider uppercase`}
-                                            >
-                                                FINISH
-                                            </button>
-                                        </div>
-                                    </>
-                                )}
-                            </>
-                        ) : (
-                            <div className="py-8 animate-in zoom-in duration-500 w-full">
-                                <div className="p-3 rounded-full bg-[var(--accent-green)]/10 w-fit mx-auto mb-4">
-                                    <CheckCircle2 size={40} className="text-[var(--accent-green)]" />
+                                            <div className={`flex gap-2.5 w-full ${selectedTool === 'doodle' ? 'mt-auto' : 'mt-2'}`}>
+                                                {!isActive ? (
+                                                    <button
+                                                        onClick={() => setIsActive(true)}
+                                                        className="flex-1 flex items-center justify-center gap-2 py-3 bg-[var(--accent-green)] text-white rounded-xl font-semibold shadow-md shadow-green-500/10 hover:scale-[1.01] active:scale-98 transition-all text-xs tracking-wider uppercase"
+                                                    >
+                                                        <Play size={16} fill="currentColor" /> START
+                                                    </button>
+                                                ) : (
+                                                    <button
+                                                        onClick={() => setIsActive(false)}
+                                                        className="flex-1 flex items-center justify-center gap-2 py-3 bg-[var(--bg-secondary)] text-[var(--text-primary)] rounded-xl font-semibold border border-[var(--border-color)] hover:bg-[var(--bg-card)] transition-all text-xs tracking-wider uppercase"
+                                                    >
+                                                        <Pause size={16} fill="currentColor" /> PAUSE
+                                                    </button>
+                                                )}
+
+                                                <button
+                                                    disabled={seconds === 0}
+                                                    onClick={handleStop}
+                                                    className={`flex-1 py-3 bg-gradient-to-br ${currentTool?.color} text-white rounded-xl font-semibold shadow-lg ring-2 ring-white/10 hover:scale-[1.01] active:scale-98 transition-all disabled:opacity-20 disabled:pointer-events-none text-xs tracking-wider uppercase`}
+                                                >
+                                                    FINISH
+                                                </button>
+                                            </div>
+                                        </>
+                                    )}
+                                </>
+                            ) : (
+                                <div className="py-8 animate-in zoom-in duration-500 w-full">
+                                    <div className="p-3 rounded-full bg-[var(--accent-green)]/10 w-fit mx-auto mb-4">
+                                        <CheckCircle2 size={40} className="text-[var(--accent-green)]" />
+                                    </div>
+                                    <h3 className="text-xl font-semibold mb-0.5">Session Complete</h3>
+                                    <p className="text-[var(--text-secondary)] font-medium mb-8 text-xs">Invested {formatTime(seconds)}.</p>
+                                    <button onClick={reset} className="w-full py-3 bg-[var(--accent-green)] text-white rounded-xl font-semibold tracking-wider uppercase text-xs shadow-lg shadow-green-500/10 hover:scale-[1.01] transition-all">CLOSE</button>
                                 </div>
-                                <h3 className="text-xl font-semibold mb-0.5">Session Complete</h3>
-                                <p className="text-[var(--text-secondary)] font-medium mb-8 text-xs">Invested {formatTime(seconds)}.</p>
-                                <button onClick={reset} className="w-full py-3 bg-[var(--accent-green)] text-white rounded-xl font-semibold tracking-wider uppercase text-xs shadow-lg shadow-green-500/10 hover:scale-[1.01] transition-all">CLOSE</button>
+                            )}
+                        </div>
+
+                        {/* Right Column: Canvas (only for doodle) */}
+                        {selectedTool === 'doodle' && !isFinished && (
+                            <div className="flex-1 h-[500px] bg-[var(--bg-secondary)]/30 rounded-2xl border border-[var(--border-color)] flex items-center justify-center relative overflow-hidden shadow-inner cursor-crosshair group">
+                                <canvas
+                                    ref={canvasRef}
+                                    className="absolute inset-0 touch-none"
+                                    onMouseDown={startDrawing}
+                                    onMouseMove={draw}
+                                    onMouseUp={stopDrawing}
+                                    onMouseLeave={stopDrawing}
+                                    onTouchStart={startDrawing}
+                                    onTouchMove={draw}
+                                    onTouchEnd={stopDrawing}
+                                />
+                                <div className="absolute top-2.5 right-2.5 text-[8px] font-semibold opacity-30 group-hover:opacity-50 transition-opacity pointer-events-none uppercase tracking-widest">Zen Canvas</div>
                             </div>
                         )}
                     </div>

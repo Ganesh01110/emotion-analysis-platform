@@ -68,26 +68,45 @@ async def mood_check_in(
 
 @router.get("/mood/history")
 async def get_mood_history(
+    page: int = 1,
     limit: int = 20,
     db: Session = Depends(get_db)
 ):
     """
-    Fetch recent mood check-ins
+    Fetch recent mood check-ins with pagination
     """
     try:
-        logs = db.query(MoodLog).order_by(MoodLog.created_at.desc()).limit(limit).all()
+        offset = (page - 1) * limit
         
-        return [
-            {
-                "id": log.id,
-                "mood_rating": log.mood_rating,
-                "trigger_tag": log.trigger_tag,
-                "nuance_tag": log.nuance_tag,
-                "activity_type": log.activity_type,
-                "duration": log.duration,
-                "created_at": log.created_at
-            } for log in logs
-        ]
+        # Get total count
+        total_logs = db.query(MoodLog).count()
+        
+        # Get paginated items
+        logs = db.query(MoodLog)\
+            .order_by(MoodLog.created_at.desc())\
+            .offset(offset)\
+            .limit(limit)\
+            .all()
+        
+        total_pages = (total_logs + limit - 1) // limit
+        
+        return {
+            "items": [
+                {
+                    "id": log.id,
+                    "mood_rating": log.mood_rating,
+                    "trigger_tag": log.trigger_tag,
+                    "nuance_tag": log.nuance_tag,
+                    "activity_type": log.activity_type,
+                    "duration": log.duration,
+                    "created_at": log.created_at
+                } for log in logs
+            ],
+            "total": total_logs,
+            "page": page,
+            "pages": total_pages,
+            "limit": limit
+        }
     except Exception as e:
         logger.error(f"Mood history error: {e}")
         raise HTTPException(status_code=500, detail="Failed to fetch mood history")

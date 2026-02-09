@@ -95,6 +95,21 @@ cp .env.example .env.local
 npm run dev
 ```
 
+
+## 🔄 CI/CD Pipeline
+
+This project uses **GitHub Actions** for continuous integration and deployment. The pipeline includes:
+
+1.  **Frontend & Backend Tests**: Runs linting and automated tests.
+2.  **Security Scanning**: Uses **Snyk** to check for vulnerabilities.
+3.  **Docker Build**: Builds container images for both services.
+4.  **Notification**: Sends status updates to a **Discord** channel.
+
+### Required Secrets
+To enable the full pipeline, add the following secrets to your GitHub Repository settings:
+- `SNYK_TOKEN`: Your Snyk API token.
+- `DISCORD_WEBHOOK_URL`: Your Discord Webhook URL for notifications.
+
 ## 📁 Project Structure
 
 ```
@@ -119,7 +134,7 @@ EmotionanalysisProject/
 
 For detailed information about this project, please refer to the following documentation:
 
-- **[Walkthrough Guide](walkthrough.md)** - Complete project overview, features, and getting started guide
+- **[Walkthrough Guide](docs/walkthrough.md)** - Complete project overview, features, and getting started guide
 - **[Implementation Plan](docs/implementation_plan.md)** - Technical architecture, proposed changes, and verification plan
 - **[Project Status](docs/STATUS.md)** - Current project status, commit history, and next steps
 - **[Task Progress](docs/task.md)** - Detailed task checklist and development progress

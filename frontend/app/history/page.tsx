@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -54,13 +53,12 @@ export default function HistoryPage() {
 
                 if (activeHistoryTab === 'checkins') {
                     // Fetch Mood History
-                    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/mood/history?limit=50`);
+                    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/mood/history?page=${currentPage}&limit=${ITEMS_PER_PAGE}`);
                     if (res.ok) {
                         const data = await res.json();
-                        setMoodHistory(data);
-                        // Mock pagination for mood history for now since endpoint doesn't support it yet
-                        setTotalItems(data.length);
-                        setTotalPages(1);
+                        setMoodHistory(data.items);
+                        setTotalItems(data.total);
+                        setTotalPages(data.pages);
                     }
                 } else {
                     // Fetch Reflections or Media
@@ -234,55 +232,96 @@ export default function HistoryPage() {
                             </div>
                         ) : activeHistoryTab === 'checkins' ? (
                             moodHistory.length > 0 ? (
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    {moodHistory.map((log) => {
-                                        const moodInfo = moodRatingMap[log.mood_rating as keyof typeof moodRatingMap] || moodRatingMap[3];
-                                        return (
-                                            <div key={log.id} className="card border-white/5 ring-1 ring-black/5 bg-gradient-to-br from-[var(--bg-card)] to-[var(--bg-secondary)]/5 p-4 group hover:scale-[1.01] transition-all">
-                                                <div className="flex items-center justify-between mb-4">
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="p-2.5 rounded-xl bg-[var(--bg-secondary)]/50 border border-[var(--border-color)]">
-                                                            <Activity size={18} className="text-[var(--accent-green)]" />
+                                <>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        {moodHistory.map((log) => {
+                                            const moodInfo = moodRatingMap[log.mood_rating as keyof typeof moodRatingMap] || moodRatingMap[3];
+                                            return (
+                                                <div key={log.id} className="card border-white/5 ring-1 ring-black/5 bg-gradient-to-br from-[var(--bg-card)] to-[var(--bg-secondary)]/5 p-4 group hover:scale-[1.01] transition-all">
+                                                    <div className="flex items-center justify-between mb-4">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="p-2.5 rounded-xl bg-[var(--bg-secondary)]/50 border border-[var(--border-color)]">
+                                                                <Activity size={18} className="text-[var(--accent-green)]" />
+                                                            </div>
+                                                            <div>
+                                                                <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest leading-none mb-1">
+                                                                    {new Date(log.created_at).toLocaleDateString()}
+                                                                </p>
+                                                                <p className="text-xs font-semibold text-[var(--text-primary)]">
+                                                                    {new Date(log.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                                </p>
+                                                            </div>
                                                         </div>
-                                                        <div>
-                                                            <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest leading-none mb-1">
-                                                                {new Date(log.created_at).toLocaleDateString()}
-                                                            </p>
-                                                            <p className="text-xs font-semibold text-[var(--text-primary)]">
-                                                                {new Date(log.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                                            </p>
+                                                        <div
+                                                            className="px-3 py-1 rounded-full text-[9px] font-bold tracking-widest uppercase"
+                                                            style={{ backgroundColor: `${moodInfo.color}15`, color: moodInfo.color }}
+                                                        >
+                                                            {moodInfo.label}
                                                         </div>
                                                     </div>
-                                                    <div
-                                                        className="px-3 py-1 rounded-full text-[9px] font-bold tracking-widest uppercase"
-                                                        style={{ backgroundColor: `${moodInfo.color}15`, color: moodInfo.color }}
-                                                    >
-                                                        {moodInfo.label}
-                                                    </div>
-                                                </div>
 
-                                                <div className="flex flex-wrap gap-2 mt-4">
-                                                    {log.trigger_tag && (
-                                                        <span className="px-3 py-1 bg-[var(--bg-secondary)]/50 rounded-lg text-[10px] font-bold text-[var(--text-secondary)] border border-[var(--border-color)] uppercase tracking-wider">
-                                                            #{log.trigger_tag}
-                                                        </span>
-                                                    )}
-                                                    {log.nuance_tag && (
-                                                        <span className="px-3 py-1 bg-[var(--accent-green)]/10 rounded-lg text-[10px] font-bold text-[var(--accent-green)] border border-[var(--accent-green)]/20 uppercase tracking-wider">
-                                                            {log.nuance_tag}
-                                                        </span>
-                                                    )}
-                                                    {log.activity_type && (
-                                                        <span className="px-3 py-1 bg-[var(--accent-yellow)]/10 rounded-lg text-[10px] font-bold text-[var(--accent-yellow)] border border-[var(--accent-yellow)]/20 uppercase tracking-wider">
-                                                            {log.activity_type.replace('_', ' ')}
-                                                            {log.duration ? ` • ${log.duration}min` : ''}
-                                                        </span>
-                                                    )}
+                                                    <div className="flex flex-wrap gap-2 mt-4">
+                                                        {log.trigger_tag && (
+                                                            <span className="px-3 py-1 bg-[var(--bg-secondary)]/50 rounded-lg text-[10px] font-bold text-[var(--text-secondary)] border border-[var(--border-color)] uppercase tracking-wider">
+                                                                #{log.trigger_tag}
+                                                            </span>
+                                                        )}
+                                                        {log.nuance_tag && (
+                                                            <span className="px-3 py-1 bg-[var(--accent-green)]/10 rounded-lg text-[10px] font-bold text-[var(--accent-green)] border border-[var(--accent-green)]/20 uppercase tracking-wider">
+                                                                {log.nuance_tag}
+                                                            </span>
+                                                        )}
+                                                        {log.activity_type && (
+                                                            <span className="px-3 py-1 bg-[var(--accent-yellow)]/10 rounded-lg text-[10px] font-bold text-[var(--accent-yellow)] border border-[var(--accent-yellow)]/20 uppercase tracking-wider">
+                                                                {log.activity_type.replace('_', ' ')}
+                                                                {log.duration ? ` • ${log.duration}min` : ''}
+                                                            </span>
+                                                        )}
+                                                    </div>
                                                 </div>
+                                            );
+                                        })}
+                                    </div>
+                                    {totalPages > 1 && (
+                                        <div className="flex items-center justify-center gap-4 py-8">
+                                            <button
+                                                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                                disabled={currentPage === 1 || loading}
+                                                className="p-2 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] disabled:opacity-30 transition-all hover:bg-[var(--bg-secondary)]"
+                                            >
+                                                <ChevronLeft size={20} />
+                                            </button>
+
+                                            <div className="flex items-center gap-2">
+                                                {[...Array(totalPages)].map((_, i) => {
+                                                    const p = i + 1;
+                                                    if (p === 1 || p === totalPages || Math.abs(p - currentPage) <= 1) {
+                                                        return (
+                                                            <button
+                                                                key={p}
+                                                                onClick={() => setCurrentPage(p)}
+                                                                className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${currentPage === p ? 'bg-[var(--accent-green)] text-white shadow-lg' : 'bg-[var(--bg-card)] border border-[var(--border-color)] hover:bg-[var(--bg-secondary)]'}`}
+                                                            >
+                                                                {p}
+                                                            </button>
+                                                        );
+                                                    } else if (p === currentPage - 2 || p === currentPage + 2) {
+                                                        return <span key={p} className="text-[var(--text-secondary)]">...</span>;
+                                                    }
+                                                    return null;
+                                                })}
                                             </div>
-                                        );
-                                    })}
-                                </div>
+
+                                            <button
+                                                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                                                disabled={currentPage === totalPages || loading}
+                                                className="p-2 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] disabled:opacity-30 transition-all hover:bg-[var(--bg-secondary)]"
+                                            >
+                                                <ChevronRight size={20} />
+                                            </button>
+                                        </div>
+                                    )}
+                                </>
                             ) : (
                                 <div className="card h-64 flex flex-col items-center justify-center text-center px-4">
                                     <div className="w-16 h-16 rounded-full bg-[var(--bg-secondary)] flex items-center justify-center mb-4 opacity-20">
@@ -327,7 +366,7 @@ export default function HistoryPage() {
 
                                                 {activeHistoryTab === 'reflections' ? (
                                                     <p className="text-sm text-[var(--text-primary)] leading-relaxed italic line-clamp-3 group-hover:line-clamp-none transition-all duration-500">
-                                                        "{entry.text}"
+                                                        &quot;{entry.text}&quot;
                                                     </p>
                                                 ) : (
                                                     <div className="flex items-center gap-2">
@@ -540,4 +579,3 @@ export default function HistoryPage() {
         </div>
     );
 }
-

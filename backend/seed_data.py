@@ -100,6 +100,36 @@ def seed_database():
         db.commit()
         print(f"✅ Successfully seeded {len(records_to_create)} analysis records!")
 
+    # 3. Generate Mood Logs (Quick Check-ins)
+        print("🌱 Seeding mood logs...")
+        from models.database import MoodLog
+        mood_logs_to_create = []
+        
+        triggers = ["work", "family", "health", "sleep", "weather"]
+        nuances = ["anxious", "grateful", "tired", "excited", "calm"]
+        activities = ["meditation", "breathing", "doodle"]
+        
+        for i in range(50):
+            days_ago = random.randint(0, 60)
+            timestamp = now - timedelta(days=days_ago, hours=random.randint(6, 22))
+            
+            rating = random.randint(1, 5)
+            
+            log = MoodLog(
+                user_id=user.id,
+                mood_rating=rating,
+                trigger_tag=random.choice(triggers),
+                nuance_tag=random.choice(nuances),
+                activity_type=random.choice(activities) if random.random() > 0.7 else None,
+                duration=random.randint(60, 600) if random.random() > 0.7 else None,
+                created_at=timestamp
+            )
+            mood_logs_to_create.append(log)
+            
+        db.add_all(mood_logs_to_create)
+        db.commit()
+        print(f"✅ Successfully seeded {len(mood_logs_to_create)} mood logs!")
+
     except Exception as e:
         print(f"❌ Error during seeding: {e}")
         db.rollback()
