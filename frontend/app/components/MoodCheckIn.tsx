@@ -5,7 +5,7 @@ import {
     Briefcase, GraduationCap, Users, Heart, Activity,
     Smile, Sun, Palette, DollarSign, PartyPopper,
     Dumbbell, Plane, Moon, Plus, ChevronRight, CheckCircle2,
-    Frown, Meh, Smile as SmileIcon, Laugh, Angry
+    Frown, Meh, Smile as SmileIcon, Laugh, Angry, X
 } from 'lucide-react';
 
 const MOODS = [
@@ -74,31 +74,39 @@ export default function MoodCheckIn({ onComplete }: MoodCheckInProps) {
         }
     };
 
-    const renderStep1 = () => (
-        <div className="flex flex-col items-center py-6">
-            <h2 className="text-xl font-bold mb-8">How do you feel today?</h2>
+    const reset = () => {
+        setStep(1);
+        setSelectedMood(null);
+        setSelectedTrigger(null);
+        setSelectedNuance(null);
+    };
 
-            <div className="relative w-64 h-32 mb-8">
+    const renderStep1 = () => (
+        <div className="flex flex-col items-center py-2">
+            <h2 className="text-lg font-semibold mb-6 tracking-tight">How do you feel today?</h2>
+
+            <div className="relative w-48 h-24 mb-6">
                 {/* Gauge Background */}
                 <svg className="w-full h-full" viewBox="0 0 100 50">
                     <path
                         d="M 10 50 A 40 40 0 0 1 90 50"
                         fill="none"
                         stroke="var(--bg-secondary)"
-                        strokeWidth="8"
+                        strokeWidth="6"
                         strokeLinecap="round"
+                        className="opacity-40"
                     />
-                    {/* Active Gauge Segment (Approximate) */}
+                    {/* Active Gauge Segment */}
                     {selectedMood && (
                         <path
                             d="M 10 50 A 40 40 0 0 1 90 50"
                             fill="none"
                             stroke={MOODS[selectedMood - 1].color}
-                            strokeWidth="8"
+                            strokeWidth="6"
                             strokeLinecap="round"
                             strokeDasharray="126"
                             strokeDashoffset={126 - (selectedMood / 5) * 126}
-                            className="transition-all duration-500"
+                            className="transition-all duration-700 ease-out"
                         />
                     )}
                 </svg>
@@ -109,26 +117,26 @@ export default function MoodCheckIn({ onComplete }: MoodCheckInProps) {
                         <>
                             {(() => {
                                 const MoodIcon = MOODS[selectedMood - 1].icon;
-                                return <MoodIcon size={48} color={MOODS[selectedMood - 1].color} className="mb-2" />;
+                                return <MoodIcon size={32} color={MOODS[selectedMood - 1].color} className="mb-1.5 animate-in zoom-in-50 duration-300" />;
                             })()}
-                            <span className="font-bold text-lg" style={{ color: MOODS[selectedMood - 1].color }}>
+                            <span className="font-semibold text-sm uppercase tracking-wider" style={{ color: MOODS[selectedMood - 1].color }}>
                                 {MOODS[selectedMood - 1].label}
                             </span>
                         </>
                     ) : (
-                        <div className="w-12 h-12 rounded-full bg-[var(--bg-secondary)] mb-2" />
+                        <div className="w-8 h-8 rounded-full bg-[var(--bg-secondary)] mb-1.5 opacity-20" />
                     )}
                 </div>
             </div>
 
-            <div className="flex gap-4">
+            <div className="flex gap-3">
                 {MOODS.map((mood) => (
                     <button
                         key={mood.id}
                         onClick={() => setSelectedMood(mood.id)}
-                        className={`p-3 rounded-full transition-all transform hover:scale-110 ${selectedMood === mood.id ? 'bg-[var(--bg-card)] shadow-lg' : 'opacity-50 hover:opacity-100'}`}
+                        className={`p-2.5 rounded-2xl transition-all transform hover:scale-110 active:scale-95 ${selectedMood === mood.id ? 'bg-[var(--bg-card)] shadow-md ring-1 ring-[var(--border-color)]' : 'opacity-40 hover:opacity-100'}`}
                     >
-                        <mood.icon size={24} color={mood.color} />
+                        <mood.icon size={18} color={mood.color} />
                     </button>
                 ))}
             </div>
@@ -136,66 +144,66 @@ export default function MoodCheckIn({ onComplete }: MoodCheckInProps) {
             {selectedMood && (
                 <button
                     onClick={() => setStep(2)}
-                    className="mt-8 flex items-center gap-2 px-6 py-2 bg-[var(--accent-green)] text-white rounded-full font-bold shadow-md hover:bg-opacity-90 transition-all"
+                    className="mt-6 flex items-center gap-1.5 px-6 py-2 bg-[var(--accent-green)] text-white rounded-xl font-bold text-[10px] tracking-widest uppercase shadow-lg shadow-green-500/10 hover:scale-[1.02] active:scale-98 transition-all"
                 >
-                    CONTINUE <ChevronRight size={18} />
+                    CONTINUE <ChevronRight size={14} />
                 </button>
             )}
         </div>
     );
 
     const renderStep2 = () => (
-        <div className="flex flex-col items-center py-4">
-            <h2 className="text-xl font-bold mb-6">What is the reason?</h2>
+        <div className="flex flex-col items-center py-2">
+            <h2 className="text-lg font-semibold mb-5 tracking-tight">What is the reason?</h2>
 
-            <div className="grid grid-cols-4 sm:grid-cols-7 gap-3 mb-8">
+            <div className="grid grid-cols-4 sm:grid-cols-7 gap-2 mb-6 w-full px-4">
                 {TRIGGERS.map((trigger) => (
                     <button
                         key={trigger.id}
                         onClick={() => setSelectedTrigger(trigger.id)}
-                        className={`flex flex-col items-center justify-center p-3 rounded-xl transition-all border ${selectedTrigger === trigger.id ? 'bg-[var(--accent-green)]/10 border-[var(--accent-green)] text-[var(--accent-green)]' : 'bg-[var(--bg-secondary)]/30 border-transparent text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)]/50'}`}
+                        className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all border ${selectedTrigger === trigger.id ? 'bg-[var(--accent-green)]/10 border-[var(--accent-green)] text-[var(--accent-green)]' : 'bg-[var(--bg-secondary)]/20 border-transparent text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)]/40'}`}
                     >
-                        <trigger.icon size={20} className="mb-1" />
-                        <span className="text-[10px] font-bold uppercase tracking-tighter">{trigger.label}</span>
+                        <trigger.icon size={16} className="mb-1" />
+                        <span className="text-[8px] font-bold uppercase tracking-tight">{trigger.label}</span>
                     </button>
                 ))}
             </div>
 
-            <div className="flex gap-4">
-                <button onClick={() => setStep(1)} className="px-6 py-2 text-[var(--text-secondary)] font-bold">BACK</button>
+            <div className="flex gap-2">
+                <button onClick={() => setStep(1)} className="px-5 py-2 text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest">BACK</button>
                 <button
                     disabled={!selectedTrigger}
                     onClick={() => setStep(3)}
-                    className="flex items-center gap-2 px-6 py-2 bg-[var(--accent-green)] text-white rounded-full font-bold shadow-md hover:bg-opacity-90 transition-all disabled:opacity-50"
+                    className="flex items-center gap-1.5 px-6 py-2 bg-[var(--accent-green)] text-white rounded-xl font-bold text-[10px] tracking-widest uppercase shadow-lg shadow-green-500/10 hover:scale-[1.02] transition-all disabled:opacity-30"
                 >
-                    CONTINUE <ChevronRight size={18} />
+                    CONTINUE <ChevronRight size={14} />
                 </button>
             </div>
         </div>
     );
 
     const renderStep3 = () => (
-        <div className="flex flex-col items-center py-4">
-            <h2 className="text-xl font-bold mb-6">Feeling deeper?</h2>
+        <div className="flex flex-col items-center py-2">
+            <h2 className="text-lg font-semibold mb-5 tracking-tight">Feeling deeper?</h2>
 
-            <div className="flex flex-wrap justify-center gap-2 mb-8 max-w-lg">
+            <div className="flex flex-wrap justify-center gap-1.5 mb-6 max-w-md px-4">
                 {NUANCES.map((nuance) => (
                     <button
                         key={nuance}
                         onClick={() => setSelectedNuance(nuance)}
-                        className={`px-4 py-2 rounded-full text-xs font-bold transition-all border ${selectedNuance === nuance ? 'bg-[var(--accent-green)] border-[var(--accent-green)] text-white' : 'bg-transparent border-[var(--border-color)] text-[var(--text-secondary)] hover:border-[var(--text-primary)]'}`}
+                        className={`px-3.5 py-1.5 rounded-full text-[10px] font-bold transition-all border ${selectedNuance === nuance ? 'bg-[var(--accent-green)] border-[var(--accent-green)] text-white' : 'bg-transparent border-[var(--border-color)] text-[var(--text-secondary)] hover:border-[var(--text-primary)]'}`}
                     >
                         {nuance}
                     </button>
                 ))}
             </div>
 
-            <div className="flex gap-4">
-                <button onClick={() => setStep(2)} className="px-6 py-2 text-[var(--text-secondary)] font-bold">BACK</button>
+            <div className="flex gap-2">
+                <button onClick={() => setStep(2)} className="px-5 py-2 text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest">BACK</button>
                 <button
                     disabled={isSubmitting}
                     onClick={handleSave}
-                    className="flex items-center gap-2 px-8 py-2 bg-[var(--accent-green)] text-white rounded-full font-bold shadow-xl hover:shadow-2xl hover:scale-105 transition-all"
+                    className="flex items-center gap-1.5 px-7 py-2 bg-[var(--accent-green)] text-white rounded-xl font-bold text-[10px] tracking-widest uppercase shadow-lg shadow-green-500/10 hover:scale-[1.02] active:scale-98 transition-all disabled:opacity-30"
                 >
                     {isSubmitting ? 'SAVING...' : 'FINISH CHECK-IN'}
                 </button>
@@ -204,25 +212,29 @@ export default function MoodCheckIn({ onComplete }: MoodCheckInProps) {
     );
 
     const renderSuccess = () => (
-        <div className="flex flex-col items-center justify-center py-12 animate-in zoom-in duration-500">
-            <CheckCircle2 size={64} className="text-[var(--accent-green)] mb-4" />
-            <h2 className="text-2xl font-bold mb-2">Check-in Complete!</h2>
-            <p className="text-[var(--text-secondary)]">Your emotional pattern has been saved.</p>
+        <div className="flex flex-col items-center justify-center py-8 animate-in zoom-in duration-500 text-center">
+            <div className="p-3 rounded-full bg-[var(--accent-green)]/10 text-[var(--accent-green)] mb-3">
+                <CheckCircle2 size={32} />
+            </div>
+            <h2 className="text-xl font-semibold mb-1 tracking-tight">Check-in Complete!</h2>
+            <p className="text-xs text-[var(--text-secondary)] font-medium">Patterns that guide your journey have been saved.</p>
         </div>
     );
 
     return (
-        <div className="mood-check-in card border-2 border-dashed border-[var(--accent-green)]/30 bg-gradient-to-br from-[var(--bg-card)] to-[var(--bg-secondary)]/10 overflow-hidden">
-            <div className="relative">
+        <div className="mood-check-in card border-white/5 ring-1 ring-black/5 bg-gradient-to-br from-[var(--bg-card)] to-[var(--bg-secondary)]/5 overflow-hidden shadow-sm">
+            <div className="relative p-4 md:p-5">
                 {step < 4 && (
-                    <div className="absolute top-0 right-0 p-2 text-[10px] font-bold text-[var(--text-secondary)] uppercase">
+                    <div className="absolute top-4 right-4 text-[9px] font-bold text-[var(--text-secondary)] uppercase tracking-[0.2em] opacity-40">
                         Step {step} of 3
                     </div>
                 )}
-                {step === 1 && renderStep1()}
-                {step === 2 && renderStep2()}
-                {step === 3 && renderStep3()}
-                {step === 4 && renderSuccess()}
+                <div className="animate-in fade-in slide-in-from-bottom-2 duration-700">
+                    {step === 1 && renderStep1()}
+                    {step === 2 && renderStep2()}
+                    {step === 3 && renderStep3()}
+                    {step === 4 && renderSuccess()}
+                </div>
             </div>
         </div>
     );

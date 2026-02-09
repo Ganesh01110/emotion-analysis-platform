@@ -17,8 +17,9 @@ const BarGraph = dynamic(() => import('../components/BarGraph'), { ssr: false })
 export default function HistoryPage() {
     const [searchQuery, setSearchQuery] = useState('');
     const [filterEmotion, setFilterEmotion] = useState('all');
-    const [activeHistoryTab, setActiveHistoryTab] = useState<'reflections' | 'links'>('reflections');
+    const [activeHistoryTab, setActiveHistoryTab] = useState<'reflections' | 'links' | 'checkins'>('reflections');
     const [history, setHistory] = useState<any[]>([]);
+    const [moodHistory, setMoodHistory] = useState<any[]>([]);
     const [heatmapData, setHeatmapData] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedEntry, setSelectedEntry] = useState<any>(null);
@@ -47,26 +48,38 @@ export default function HistoryPage() {
         const fetchData = async () => {
             setLoading(true);
             try {
-                const sourceType = activeHistoryTab === 'reflections' ? 'text' : 'url';
-                const historyUrl = new URL(`${process.env.NEXT_PUBLIC_API_URL}/api/history`);
-                historyUrl.searchParams.append('page', currentPage.toString());
-                historyUrl.searchParams.append('limit', ITEMS_PER_PAGE.toString());
-                historyUrl.searchParams.append('source_type', sourceType);
-                if (filterEmotion !== 'all') historyUrl.searchParams.append('emotion', filterEmotion);
-                if (debouncedSearch) historyUrl.searchParams.append('search', debouncedSearch);
-
-                const [historyRes, summaryRes] = await Promise.all([
-                    fetch(historyUrl.toString()),
-                    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/history/summary`)
-                ]);
-
-                if (historyRes.ok) {
-                    const data = await historyRes.json();
-                    setHistory(data.items);
-                    setTotalPages(data.pages);
-                    setTotalItems(data.total);
-                }
+                // Fetch Heatmap Summary (Always needed)
+                const summaryRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/history/summary`);
                 if (summaryRes.ok) setHeatmapData(await summaryRes.json());
+
+                if (activeHistoryTab === 'checkins') {
+                    // Fetch Mood History
+                    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/mood/history?limit=50`);
+                    if (res.ok) {
+                        const data = await res.json();
+                        setMoodHistory(data);
+                        // Mock pagination for mood history for now since endpoint doesn't support it yet
+                        setTotalItems(data.length);
+                        setTotalPages(1);
+                    }
+                } else {
+                    // Fetch Reflections or Media
+                    const sourceType = activeHistoryTab === 'reflections' ? 'text' : 'url';
+                    const historyUrl = new URL(`${process.env.NEXT_PUBLIC_API_URL}/api/history`);
+                    historyUrl.searchParams.append('page', currentPage.toString());
+                    historyUrl.searchParams.append('limit', ITEMS_PER_PAGE.toString());
+                    historyUrl.searchParams.append('source_type', sourceType);
+                    if (filterEmotion !== 'all') historyUrl.searchParams.append('emotion', filterEmotion);
+                    if (debouncedSearch) historyUrl.searchParams.append('search', debouncedSearch);
+
+                    const historyRes = await fetch(historyUrl.toString());
+                    if (historyRes.ok) {
+                        const data = await historyRes.json();
+                        setHistory(data.items);
+                        setTotalPages(data.pages);
+                        setTotalItems(data.total);
+                    }
+                }
             } catch (error) {
                 console.error('Error fetching history:', error);
             } finally {
@@ -87,6 +100,14 @@ export default function HistoryPage() {
         disgust: '#8E44AD',
         surprise: '#F39C12',
         anticipation: '#E67E22',
+    };
+
+    const moodRatingMap: Record<number, { label: string, color: string, emotion: string }> = {
+        1: { label: 'Very Bad', color: '#E74C3C', emotion: 'anger' },
+        2: { label: 'Not Good', color: '#E67E22', emotion: 'sadness' },
+        3: { label: 'Okay', color: '#F39C12', emotion: 'trust' },
+        4: { label: 'Good', color: '#86E3CE', emotion: 'joy' },
+        5: { label: 'Great', color: '#FFD700', emotion: 'joy' },
     };
 
     return (
@@ -152,7 +173,14 @@ export default function HistoryPage() {
                                 className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all ${activeHistoryTab === 'reflections' ? 'bg-[var(--bg-card)] shadow-md text-[var(--accent-green)]' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}
                             >
                                 <MessageSquare size={14} />
-                                MY REFLECTIONS
+                                REFLECTIONS
+                            </button>
+                            <button
+                                onClick={() => setActiveHistoryTab('checkins')}
+                                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all ${activeHistoryTab === 'checkins' ? 'bg-[var(--bg-card)] shadow-md text-[var(--accent-green)]' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}
+                            >
+                                <Activity size={14} />
+                                QUICK LOGS
                             </button>
                             <button
                                 onClick={() => setActiveHistoryTab('links')}
@@ -170,25 +198,31 @@ export default function HistoryPage() {
                                     type="text"
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
-                                    placeholder={activeHistoryTab === 'reflections' ? "Search your thoughts..." : "Search link titles..."}
+                                    placeholder={
+                                        activeHistoryTab === 'reflections' ? "Search your thoughts..." :
+                                            activeHistoryTab === 'links' ? "Search link titles..." :
+                                                "Search your logs..."
+                                    }
                                     className="input-field pl-12 h-10 text-sm"
                                     style={{ paddingLeft: '2.75rem' }}
                                 />
                             </div>
-                            <div className="relative">
-                                <Filter size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)] pointer-events-none" />
-                                <select
-                                    value={filterEmotion}
-                                    onChange={(e) => setFilterEmotion(e.target.value)}
-                                    className="input-field w-40 pl-12 h-10 text-sm appearance-none"
-                                    style={{ paddingLeft: '2.75rem' }}
-                                >
-                                    <option value="all">All Emotions</option>
-                                    {Object.keys(emotionColors).map(e => (
-                                        <option key={e} value={e}>{e.charAt(0).toUpperCase() + e.slice(1)}</option>
-                                    ))}
-                                </select>
-                            </div>
+                            {activeHistoryTab !== 'checkins' && (
+                                <div className="relative">
+                                    <Filter size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-secondary)] pointer-events-none" />
+                                    <select
+                                        value={filterEmotion}
+                                        onChange={(e) => setFilterEmotion(e.target.value)}
+                                        className="input-field w-40 pl-12 h-10 text-sm appearance-none"
+                                        style={{ paddingLeft: '2.75rem' }}
+                                    >
+                                        <option value="all">All Emotions</option>
+                                        {Object.keys(emotionColors).map(e => (
+                                            <option key={e} value={e}>{e.charAt(0).toUpperCase() + e.slice(1)}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            )}
                         </div>
                     </div>
 
@@ -198,6 +232,66 @@ export default function HistoryPage() {
                             <div className="h-64 flex items-center justify-center">
                                 <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[var(--accent-green)]" />
                             </div>
+                        ) : activeHistoryTab === 'checkins' ? (
+                            moodHistory.length > 0 ? (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {moodHistory.map((log) => {
+                                        const moodInfo = moodRatingMap[log.mood_rating as keyof typeof moodRatingMap] || moodRatingMap[3];
+                                        return (
+                                            <div key={log.id} className="card border-white/5 ring-1 ring-black/5 bg-gradient-to-br from-[var(--bg-card)] to-[var(--bg-secondary)]/5 p-4 group hover:scale-[1.01] transition-all">
+                                                <div className="flex items-center justify-between mb-4">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="p-2.5 rounded-xl bg-[var(--bg-secondary)]/50 border border-[var(--border-color)]">
+                                                            <Activity size={18} className="text-[var(--accent-green)]" />
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest leading-none mb-1">
+                                                                {new Date(log.created_at).toLocaleDateString()}
+                                                            </p>
+                                                            <p className="text-xs font-semibold text-[var(--text-primary)]">
+                                                                {new Date(log.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                    <div
+                                                        className="px-3 py-1 rounded-full text-[9px] font-bold tracking-widest uppercase"
+                                                        style={{ backgroundColor: `${moodInfo.color}15`, color: moodInfo.color }}
+                                                    >
+                                                        {moodInfo.label}
+                                                    </div>
+                                                </div>
+
+                                                <div className="flex flex-wrap gap-2 mt-4">
+                                                    {log.trigger_tag && (
+                                                        <span className="px-3 py-1 bg-[var(--bg-secondary)]/50 rounded-lg text-[10px] font-bold text-[var(--text-secondary)] border border-[var(--border-color)] uppercase tracking-wider">
+                                                            #{log.trigger_tag}
+                                                        </span>
+                                                    )}
+                                                    {log.nuance_tag && (
+                                                        <span className="px-3 py-1 bg-[var(--accent-green)]/10 rounded-lg text-[10px] font-bold text-[var(--accent-green)] border border-[var(--accent-green)]/20 uppercase tracking-wider">
+                                                            {log.nuance_tag}
+                                                        </span>
+                                                    )}
+                                                    {log.activity_type && (
+                                                        <span className="px-3 py-1 bg-[var(--accent-yellow)]/10 rounded-lg text-[10px] font-bold text-[var(--accent-yellow)] border border-[var(--accent-yellow)]/20 uppercase tracking-wider">
+                                                            {log.activity_type.replace('_', ' ')}
+                                                            {log.duration ? ` • ${log.duration}min` : ''}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            ) : (
+                                <div className="card h-64 flex flex-col items-center justify-center text-center px-4">
+                                    <div className="w-16 h-16 rounded-full bg-[var(--bg-secondary)] flex items-center justify-center mb-4 opacity-20">
+                                        <Activity size={32} />
+                                    </div>
+                                    <h3 className="font-bold text-[var(--text-secondary)]">No check-ins yet</h3>
+                                    <p className="text-xs text-[var(--text-secondary)] opacity-60">Start your journey from the Dashboard!</p>
+                                </div>
+                            )
                         ) : displayedEntries.length > 0 ? (
                             <>
                                 <div className="flex items-center justify-between px-1 mb-2">

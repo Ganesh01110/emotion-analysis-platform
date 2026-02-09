@@ -62,7 +62,7 @@ export default function SelfCarePage() {
                     subtitle="Connect with your inner peace. Choose a practice to reset your energy."
                 />
 
-                <div className="p-4 md:p-6 max-w-7xl mx-auto space-y-10">
+                <div className="p-4 md:p-6 max-w-7xl mx-auto space-y-6">
                     <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                         <div>
                             <h1 className="text-3xl font-bold tracking-tight mb-2 text-[var(--text-primary)]">Self-Care Sanctuary</h1>
@@ -78,14 +78,14 @@ export default function SelfCarePage() {
 
                     {/* Functional Toolbox */}
                     <section>
-                        <div className="flex items-center gap-3 mb-6">
+                        <div className="flex items-center gap-3 mb-4">
                             <div className="w-8 h-[2px] bg-[var(--accent-green)] rounded-full opacity-50" />
                             <h2 className="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--text-secondary)]">The Toolbox</h2>
                         </div>
                         <SelfCareToolbox />
                     </section>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                    <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
                         {/* Affirmations */}
                         <div className="lg:col-span-2 card bg-gradient-to-br from-[var(--bg-card)] to-[var(--bg-secondary)]/5 border-white/5 ring-1 ring-black/5 p-6 shadow-sm">
                             <h3 className="font-semibold text-xs uppercase tracking-widest mb-4 flex items-center gap-2.5 text-[var(--text-secondary)]">
