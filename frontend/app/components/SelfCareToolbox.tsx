@@ -61,7 +61,7 @@ export default function SelfCareToolbox() {
         return () => clearInterval(interval);
     }, [isActive, breathPhase, selectedTool, targetSeconds]);
 
-    // Initialize Canvas only once when selectedTool becomes 'doodle'
+    // Initialize Canvas
     useEffect(() => {
         if (selectedTool === 'doodle' && canvasRef.current && !isFinished) {
             const canvas = canvasRef.current;
@@ -72,7 +72,7 @@ export default function SelfCareToolbox() {
                 const ctx = canvas.getContext('2d');
                 if (ctx) {
                     ctx.strokeStyle = '#86A789';
-                    ctx.lineWidth = 3;
+                    ctx.lineWidth = 2.5;
                     ctx.lineCap = 'round';
                     ctx.lineJoin = 'round';
                 }
@@ -159,31 +159,32 @@ export default function SelfCareToolbox() {
 
         return (
             <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/40 backdrop-blur-[2px] animate-in fade-in duration-300">
-                <div className="bg-[var(--bg-card)]/95 backdrop-blur-xl w-full max-w-sm rounded-[2rem] overflow-hidden shadow-2xl border border-white/10 ring-1 ring-black/5">
-                    <div className={`h-1.5 transition-all duration-1000 bg-gradient-to-r ${currentTool?.color}`} style={{ width: targetSeconds > 0 ? `${(seconds / targetSeconds) * 100}%` : '100%' }} />
+                <div className="bg-[var(--bg-card)]/95 backdrop-blur-xl w-full max-w-sm rounded-[1.5rem] overflow-hidden shadow-2xl border border-white/10 ring-1 ring-black/5">
+                    <div className={`h-1 transition-all duration-1000 bg-gradient-to-r ${currentTool?.color}`} style={{ width: targetSeconds > 0 ? `${(seconds / targetSeconds) * 100}%` : '100%' }} />
 
-                    <div className="p-8 flex flex-col items-center text-center relative">
-                        <button onClick={reset} className="absolute top-4 right-4 p-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-secondary)] rounded-full transition-colors">
-                            <X size={20} />
+                    <div className="p-6 flex flex-col items-center text-center relative">
+                        <button onClick={reset} className="absolute top-3 right-3 p-1.5 text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-secondary)] rounded-full transition-colors">
+                            <X size={18} />
                         </button>
 
-                        <div className={`p-4 rounded-3xl bg-gradient-to-br ${currentTool?.color} text-white mb-6 shadow-xl ring-4 ring-white/10`}>
-                            {currentTool && <currentTool.icon size={28} />}
+                        <div className={`p-3.5 rounded-2xl bg-gradient-to-br ${currentTool?.color} text-white mb-4 shadow-lg ring-2 ring-white/10`}>
+                            {currentTool && <currentTool.icon size={22} />}
                         </div>
 
-                        <h2 className="text-xl font-black tracking-tight mb-1">{currentTool?.label}</h2>
+                        <h2 className="text-lg font-semibold tracking-tight mb-0.5">{currentTool?.label}</h2>
+                        <p className="text-[10px] text-[var(--text-secondary)] uppercase tracking-widest font-medium opacity-60">Practice Phase</p>
 
                         {!isFinished ? (
                             <>
                                 {selectedTool === 'custom' && targetSeconds === 0 ? (
-                                    <div className="w-full py-8">
-                                        <p className="text-sm font-bold text-[var(--text-secondary)] mb-6 uppercase tracking-widest">Select Duration</p>
-                                        <div className="grid grid-cols-2 gap-3 mb-8">
+                                    <div className="w-full py-6">
+                                        <p className="text-[10px] font-semibold text-[var(--text-secondary)] mb-4 uppercase tracking-[0.2em]">Select Duration</p>
+                                        <div className="grid grid-cols-2 gap-2 mb-6">
                                             {PRESETS.map(m => (
                                                 <button
                                                     key={m}
                                                     onClick={() => setTargetSeconds(m * 60)}
-                                                    className="py-4 bg-[var(--bg-secondary)]/50 border border-[var(--border-color)] rounded-2xl font-black text-lg hover:bg-[var(--accent-green)]/10 hover:border-[var(--accent-green)] transition-all"
+                                                    className="py-3 bg-[var(--bg-secondary)]/40 border border-[var(--border-color)] rounded-xl font-semibold text-base hover:bg-[var(--accent-green)]/10 hover:border-[var(--accent-green)] transition-all"
                                                 >
                                                     {m}m
                                                 </button>
@@ -192,29 +193,29 @@ export default function SelfCareToolbox() {
                                     </div>
                                 ) : (
                                     <>
-                                        <div className="text-6xl font-mono font-black my-8 text-[var(--text-primary)] tabular-nums tracking-tighter">
+                                        <div className="text-5xl font-mono font-medium my-6 text-[var(--text-primary)] tabular-nums tracking-tighter">
                                             {formatTime(seconds, targetSeconds)}
                                         </div>
 
                                         {selectedTool === 'breathing' && (
-                                            <div className="mb-10 flex flex-col items-center">
+                                            <div className="mb-8 flex flex-col items-center">
                                                 <div
-                                                    className="w-32 h-32 rounded-full ring-2 ring-[var(--accent-green)]/20 flex items-center justify-center transition-all duration-1000 shadow-inner"
+                                                    className="w-28 h-28 rounded-full ring-1 ring-[var(--accent-green)]/20 flex items-center justify-center transition-all duration-1000 shadow-inner"
                                                     style={{
-                                                        transform: `scale(${breathPhase === 'inhale' ? 1.4 : breathPhase === 'exhale' ? 0.9 : 1.4})`,
-                                                        backgroundColor: 'var(--accent-green)1A'
+                                                        transform: `scale(${breathPhase === 'inhale' ? 1.3 : breathPhase === 'exhale' ? 0.9 : 1.3})`,
+                                                        backgroundColor: 'var(--accent-green)10'
                                                     }}
                                                 >
                                                     <div className="flex flex-col items-center">
-                                                        <span className="text-3xl font-black text-[var(--accent-green)]">{breathCount}</span>
-                                                        <span className="text-[10px] uppercase font-black tracking-[0.2em] text-[var(--accent-green)]/60">{breathPhase}</span>
+                                                        <span className="text-2xl font-semibold text-[var(--accent-green)]">{breathCount}</span>
+                                                        <span className="text-[8px] uppercase font-semibold tracking-widest text-[var(--accent-green)]/50">{breathPhase}</span>
                                                     </div>
                                                 </div>
                                             </div>
                                         )}
 
                                         {selectedTool === 'doodle' && (
-                                            <div className="w-full aspect-square bg-[var(--bg-secondary)]/50 rounded-3xl mb-8 border border-[var(--border-color)] flex items-center justify-center relative overflow-hidden shadow-inner cursor-crosshair group">
+                                            <div className="w-full aspect-square bg-[var(--bg-secondary)]/30 rounded-2xl mb-6 border border-[var(--border-color)] flex items-center justify-center relative overflow-hidden shadow-inner cursor-crosshair group">
                                                 <canvas
                                                     ref={canvasRef}
                                                     className="absolute inset-0 touch-none"
@@ -226,31 +227,31 @@ export default function SelfCareToolbox() {
                                                     onTouchMove={draw}
                                                     onTouchEnd={stopDrawing}
                                                 />
-                                                <div className="absolute top-3 right-3 text-[10px] font-black opacity-30 group-hover:opacity-60 transition-opacity pointer-events-none uppercase tracking-widest">Zen Canvas</div>
+                                                <div className="absolute top-2.5 right-2.5 text-[8px] font-semibold opacity-30 group-hover:opacity-50 transition-opacity pointer-events-none uppercase tracking-widest">Zen Canvas</div>
                                             </div>
                                         )}
 
-                                        <div className="flex gap-3 w-full mt-4">
+                                        <div className="flex gap-2.5 w-full mt-2">
                                             {!isActive ? (
                                                 <button
                                                     onClick={() => setIsActive(true)}
-                                                    className="flex-1 flex items-center justify-center gap-3 py-4 bg-[var(--accent-green)] text-white rounded-2xl font-black shadow-lg shadow-green-500/20 hover:scale-[1.02] active:scale-95 transition-all text-sm tracking-widest uppercase"
+                                                    className="flex-1 flex items-center justify-center gap-2 py-3 bg-[var(--accent-green)] text-white rounded-xl font-semibold shadow-md shadow-green-500/10 hover:scale-[1.01] active:scale-98 transition-all text-xs tracking-wider uppercase"
                                                 >
-                                                    <Play size={18} fill="currentColor" /> START
+                                                    <Play size={16} fill="currentColor" /> START
                                                 </button>
                                             ) : (
                                                 <button
                                                     onClick={() => setIsActive(false)}
-                                                    className="flex-1 flex items-center justify-center gap-3 py-4 bg-[var(--bg-secondary)] text-[var(--text-primary)] rounded-2xl font-black border border-[var(--border-color)] hover:bg-[var(--bg-card)] transition-all text-sm tracking-widest uppercase"
+                                                    className="flex-1 flex items-center justify-center gap-2 py-3 bg-[var(--bg-secondary)] text-[var(--text-primary)] rounded-xl font-semibold border border-[var(--border-color)] hover:bg-[var(--bg-card)] transition-all text-xs tracking-wider uppercase"
                                                 >
-                                                    <Pause size={18} fill="currentColor" /> PAUSE
+                                                    <Pause size={16} fill="currentColor" /> PAUSE
                                                 </button>
                                             )}
 
                                             <button
                                                 disabled={seconds === 0}
                                                 onClick={handleStop}
-                                                className="flex-1 py-4 bg-[var(--text-primary)] text-white rounded-2xl font-black shadow-lg hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-30 disabled:pointer-events-none text-sm tracking-widest uppercase"
+                                                className="flex-1 py-3 bg-[var(--text-primary)] text-white rounded-xl font-semibold shadow-md hover:scale-[1.01] active:scale-98 transition-all disabled:opacity-20 disabled:pointer-events-none text-xs tracking-wider uppercase"
                                             >
                                                 FINISH
                                             </button>
@@ -259,13 +260,13 @@ export default function SelfCareToolbox() {
                                 )}
                             </>
                         ) : (
-                            <div className="py-12 animate-in zoom-in duration-500 w-full">
-                                <div className="p-4 rounded-full bg-[var(--accent-green)]/10 w-fit mx-auto mb-6">
-                                    <CheckCircle2 size={56} className="text-[var(--accent-green)]" />
+                            <div className="py-8 animate-in zoom-in duration-500 w-full">
+                                <div className="p-3 rounded-full bg-[var(--accent-green)]/10 w-fit mx-auto mb-4">
+                                    <CheckCircle2 size={40} className="text-[var(--accent-green)]" />
                                 </div>
-                                <h3 className="text-2xl font-black mb-1">Session Complete!</h3>
-                                <p className="text-[var(--text-secondary)] font-medium mb-10 text-sm">You invested {formatTime(seconds)} in yourself.</p>
-                                <button onClick={reset} className="w-full py-4 bg-[var(--accent-green)] text-white rounded-2xl font-black tracking-widest uppercase text-sm shadow-xl shadow-green-500/20 hover:scale-[1.02] transition-all">CLOSE SANCTUARY</button>
+                                <h3 className="text-xl font-semibold mb-0.5">Session Complete</h3>
+                                <p className="text-[var(--text-secondary)] font-medium mb-8 text-xs">Invested {formatTime(seconds)}.</p>
+                                <button onClick={reset} className="w-full py-3 bg-[var(--accent-green)] text-white rounded-xl font-semibold tracking-wider uppercase text-xs shadow-lg shadow-green-500/10 hover:scale-[1.01] transition-all">CLOSE</button>
                             </div>
                         )}
                     </div>
@@ -276,26 +277,26 @@ export default function SelfCareToolbox() {
 
     return (
         <div className="self-care-toolbox">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
                 {TOOLS.map((tool) => (
                     <button
                         key={tool.id}
                         onClick={() => setSelectedTool(tool.id)}
-                        className="card group hover:shadow-2xl hover:-translate-y-1.5 transition-all duration-300 text-left relative overflow-hidden p-5 flex flex-col justify-between h-40 border-white/5 ring-1 ring-black/5"
+                        className="card group hover:shadow-xl hover:-translate-y-1 transition-all duration-300 text-left relative overflow-hidden p-4 flex flex-col justify-between h-36 border-white/5 ring-1 ring-black/5"
                     >
-                        <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${tool.color} opacity-[0.03] group-hover:opacity-[0.08] transition-opacity rounded-full -mr-12 -mt-12 scale-150`} />
+                        <div className={`absolute top-0 right-0 w-28 h-28 bg-gradient-to-br ${tool.color} opacity-[0.02] group-hover:opacity-[0.05] transition-opacity rounded-full -mr-10 -mt-10 scale-150`} />
 
-                        <div className={`w-11 h-11 rounded-[1.2rem] bg-gradient-to-br ${tool.color} flex items-center justify-center mb-0 shadow-lg ring-4 ring-white/5`}>
-                            <tool.icon size={22} className="text-white" />
+                        <div className={`w-10 h-10 rounded-[1rem] bg-gradient-to-br ${tool.color} flex items-center justify-center mb-0 shadow-md ring-2 ring-white/5 transition-transform group-hover:scale-105 duration-300`}>
+                            <tool.icon size={18} className="text-white" />
                         </div>
 
                         <div>
-                            <h3 className="text-sm font-black mb-1 tracking-tight text-[var(--text-primary)]">{tool.label}</h3>
-                            <p className="text-[10px] text-[var(--text-secondary)] font-medium mb-0 opacity-70 group-hover:opacity-100 transition-opacity uppercase tracking-tighter">{tool.description}</p>
+                            <h3 className="text-sm font-semibold mb-0.5 tracking-tight text-[var(--text-primary)]">{tool.label}</h3>
+                            <p className="text-[9px] text-[var(--text-secondary)] font-medium mb-0 opacity-60 group-hover:opacity-90 transition-opacity uppercase tracking-tight">{tool.description}</p>
                         </div>
 
-                        <div className="flex items-center gap-1 text-[9px] font-black text-[var(--accent-green)] uppercase tracking-[0.2em] opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">
-                            START <Play size={8} fill="currentColor" />
+                        <div className="flex items-center gap-1 text-[8px] font-semibold text-[var(--accent-green)] uppercase tracking-widest opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">
+                            PRACTICE <Play size={7} fill="currentColor" />
                         </div>
                     </button>
                 ))}
