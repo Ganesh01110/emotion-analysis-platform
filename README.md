@@ -54,6 +54,38 @@ cp .env.example .env
 uvicorn main:app --reload
 ```
 
+##### To only run Backend server after stopping it
+
+**For PowerShell:**
+```powershell
+cd backend
+.\venv\Scripts\Activate.ps1
+uvicorn main:app --reload
+```
+
+**For CMD (Command Prompt):**
+```cmd
+cd backend
+venv\Scripts\activate.bat
+uvicorn main:app --reload
+```
+
+
+##### Kill Previously Running Backend/Frontend Processes
+
+**For PowerShell:**
+```powershell
+# Stop all Python (backend) and Node (frontend) processes
+Stop-Process -Name "python", "uvicorn", "node" -Force -ErrorAction SilentlyContinue
+```
+
+**For CMD (Command Prompt):**
+```cmd
+taskkill /F /IM python.exe /T 2>nul
+taskkill /F /IM node.exe /T 2>nul
+```
+
+
 #### Frontend
 ```bash
 cd frontend

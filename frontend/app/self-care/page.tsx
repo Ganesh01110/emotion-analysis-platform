@@ -6,6 +6,7 @@
 'use client';
 
 import Navigation from '../components/Navigation';
+import UserHeader from '../components/UserHeader';
 import dynamic from 'next/dynamic';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { Heart, Music, Book, Coffee, Sparkles } from 'lucide-react';
@@ -63,11 +64,12 @@ export default function SelfCarePage() {
         <div className="min-h-screen bg-[var(--bg-primary)]">
             <Navigation />
 
-            <main className="md:ml-64 pt-16 md:pt-0 p-6">
-                <div className="max-w-7xl mx-auto">
-                    <div className="mb-8">
-                        <h1 className="text-3xl font-bold mb-2">Self-Care Sanctuary</h1>
-                        <p className="text-[var(--text-secondary)]">
+            <main className="md:ml-60 min-h-screen">
+                <UserHeader />
+                <div className="p-4 md:p-6 max-w-7xl mx-auto">
+                    <div className="mb-6">
+                        <h1 className="text-2xl font-bold mb-1">Self-Care Sanctuary</h1>
+                        <p className="text-sm text-[var(--text-secondary)]">
                             Tools to nurture your emotional well-being
                         </p>
                     </div>

@@ -12,7 +12,7 @@
   --accent-green: #86A789;
   --accent-yellow: #F4E869;
   --border-color: #DFE6E9;
-  
+
   /* Emotion Colors (Plutchik Standard) */
   --emotion-joy: #FFD700;
   --emotion-sadness: #4A90E2;
@@ -72,12 +72,26 @@ body {
   background: var(--accent-yellow);
 }
 
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--accent-green);
+  opacity: 0.5;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-green);
+  opacity: 1;
+}
+
 /* Card Styles */
 .card {
   background-color: var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: 12px;
-  padding: 1.5rem;
+  padding: 1rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   transition: all 0.3s ease;
 }
@@ -91,10 +105,11 @@ body {
 .btn-primary {
   background: linear-gradient(135deg, var(--accent-green), var(--accent-yellow));
   color: white;
-  padding: 0.75rem 1.5rem;
-  border-radius: 8px;
+  padding: 0.5rem 1.25rem;
+  border-radius: 6px;
   border: none;
   font-weight: 600;
+  font-size: 0.875rem;
   cursor: pointer;
   transition: all 0.3s ease;
 }
@@ -123,12 +138,12 @@ body {
 /* Input Styles */
 .input-field {
   width: 100%;
-  padding: 0.75rem 1rem;
+  padding: 0.5rem 0.875rem;
   background-color: var(--bg-secondary);
   border: 1px solid var(--border-color);
-  border-radius: 8px;
+  border-radius: 6px;
   color: var(--text-primary);
-  font-size: 1rem;
+  font-size: 0.875rem;
   transition: all 0.3s ease;
 }
 
@@ -140,13 +155,13 @@ body {
 
 .textarea-field {
   width: 100%;
-  min-height: 150px;
-  padding: 1rem;
+  min-height: 120px;
+  padding: 0.875rem;
   background-color: var(--bg-secondary);
   border: 1px solid var(--border-color);
   border-radius: 8px;
   color: var(--text-primary);
-  font-size: 1rem;
+  font-size: 0.875rem;
   font-family: inherit;
   resize: vertical;
   transition: all 0.3s ease;
@@ -187,9 +202,12 @@ body {
 
 /* Loading Animation */
 @keyframes pulse {
-  0%, 100% {
+
+  0%,
+  100% {
     opacity: 1;
   }
+
   50% {
     opacity: 0.5;
   }

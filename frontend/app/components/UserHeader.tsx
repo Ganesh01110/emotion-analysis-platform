@@ -9,7 +9,14 @@ export default function UserHeader() {
     return (
         <header className="sticky top-0 z-30 flex items-center justify-between px-6 py-4 bg-[var(--bg-primary)]/80 backdrop-blur-md border-b border-[var(--border-color)]">
             <div className="flex-1">
-                {/* Search or other info could go here */}
+                {!loading && (
+                    <div>
+                        <h2 className="text-xl font-bold">
+                            Good {new Date().getHours() < 12 ? 'morning' : new Date().getHours() < 18 ? 'afternoon' : 'evening'}, {getDisplayName()}.
+                        </h2>
+                        <p className="text-xs text-[var(--text-secondary)]">The tide is calm, and your mind is at peace.</p>
+                    </div>
+                )}
             </div>
 
             <div className="flex items-center gap-4">
