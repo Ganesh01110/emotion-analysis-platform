@@ -38,5 +38,11 @@ In your Hugging Face Space, go to **Settings > Variables and secrets** and add:
 - `ENCRYPTION_KEY`: Your 32-character key.
 - `DATABASE_URL`: Your production database URL (or leave blank to use the default SQLite).
 
-## 5. Port Information
-Hugging Face Spaces uses port **7860** by default. I have already updated your `backend/Dockerfile` to use this port for you.
+## 7. Frontend Deployment (Optional)
+If you want to host the frontend on Hugging Face as well:
+1. Create another Space with **Docker** and **Blank** template.
+2. Ensure you set `HF_SPACE_NAME` in your GitHub secrets to the name of this new frontend Space.
+3. Use a similar GitHub Action to sync the `frontend/` directory.
+
+> [!TIP]
+> For the best performance with Next.js, consider using [Vercel](file:///docs/DEPLOY_FRONTEND.md) for the frontend instead.
