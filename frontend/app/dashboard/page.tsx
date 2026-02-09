@@ -8,7 +8,8 @@ import UserHeader from '../components/UserHeader';
 import { useAuth } from '../hooks/useAuth';
 import dynamic from 'next/dynamic';
 import LoadingSpinner from '../components/LoadingSpinner';
-import { Sparkles, Link as LinkIcon, Mic, PieChart, Activity, AlignLeft } from 'lucide-react';
+import { Sparkles, Link as LinkIcon, Mic, PieChart, Activity, AlignLeft, Heart } from 'lucide-react';
+import MoodCheckIn from '../components/MoodCheckIn';
 const EmotionWheel = dynamic(() => import('../components/EmotionWheel'), {
     loading: () => <LoadingSpinner />,
     ssr: false
@@ -165,11 +166,22 @@ export default function DashboardPage() {
 
             {/* Main Content */}
             <main className="md:ml-60 min-h-screen">
-                <UserHeader />
+                {/* Header */}
+                <header className="mb-8">
+                    <UserHeader
+                        displayName={getDisplayName()}
+                        subtitle="Welcome to your emotional sanctuary. How can we support you today?"
+                    />
+                </header>
+
+                {/* Mood Check-In (High Priority) */}
+                <div className="mb-8">
+                    <MoodCheckIn onComplete={() => fetchDashboardData()} />
+                </div>
 
                 <div className="p-4 md:p-6 max-w-7xl mx-auto space-y-4">
                     {/* Bento Grid */}
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 md:gap-4">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                         {/* Input Card - Spans 2 columns */}
                         <div className="lg:col-span-2 card">
                             <div className="flex gap-4 mb-3 border-b border-[var(--border-color)]">

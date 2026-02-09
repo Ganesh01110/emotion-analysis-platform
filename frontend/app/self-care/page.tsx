@@ -1,22 +1,13 @@
-/*
- * Self-Care Page
- * Adaptive care features based on emotional state
- */
-
 'use client';
 
 import Navigation from '../components/Navigation';
 import UserHeader from '../components/UserHeader';
 import dynamic from 'next/dynamic';
 import LoadingSpinner from '../components/LoadingSpinner';
-import { Heart, Music, Book, Coffee, Sparkles } from 'lucide-react';
+import { Heart, Music, Book, Coffee, Sparkles, BookOpen } from 'lucide-react';
 import affirmationsData from '../data/affirmations.json';
 import { useState, useEffect } from 'react';
-
-const BreathingExercise = dynamic(() => import('../components/BreathingExercise'), {
-    loading: () => <LoadingSpinner />,
-    ssr: false
-});
+import SelfCareToolbox from '../components/SelfCareToolbox';
 
 export default function SelfCarePage() {
     const getRandomAffirmations = () => {
@@ -33,147 +24,111 @@ export default function SelfCarePage() {
     const handleGenerate = () => {
         setCurrentAffirmations(getRandomAffirmations());
     };
-    const moodLifters = [
-        {
-            icon: Music,
-            title: 'Calming Playlist',
-            description: 'Curated sounds for serenity',
-            color: 'from-blue-400 to-blue-600',
-        },
-        {
-            icon: Book,
-            title: 'Guided Journal',
-            description: 'Prompts for reflection',
-            color: 'from-purple-400 to-purple-600',
-        },
-        {
-            icon: Coffee,
-            title: 'Mindful Break',
-            description: '5-minute reset ritual',
-            color: 'from-amber-400 to-amber-600',
-        },
-        {
-            icon: Sparkles,
-            title: 'Gratitude Practice',
-            description: 'Find joy in small things',
-            color: 'from-pink-400 to-pink-600',
-        },
-    ];
 
     return (
         <div className="min-h-screen bg-[var(--bg-primary)]">
             <Navigation />
 
             <main className="md:ml-60 min-h-screen">
-                <UserHeader />
-                <div className="p-4 md:p-6 max-w-7xl mx-auto">
+                <UserHeader
+                    subtitle="Take a moment for yourself. Choose a tool from your sanctuary toolbox to begin."
+                />
+
+                <div className="p-4 md:p-6 max-w-7xl mx-auto space-y-8">
                     <div className="mb-6">
-                        <h1 className="text-2xl font-bold mb-1">Self-Care Sanctuary</h1>
-                        <p className="text-sm text-[var(--text-secondary)]">
-                            Tools to nurture your emotional well-being
+                        <h1 className="text-3xl font-bold mb-2">Self-Care Sanctuary</h1>
+                        <p className="text-[var(--text-secondary)]">
+                            An active companion for your emotional resilience.
                         </p>
                     </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        {/* Breathing Exercise */}
-                        <div className="lg:col-span-1">
-                            <BreathingExercise />
-                        </div>
+                    {/* Functional Toolbox (Mood Check-in & Activities) */}
+                    <section>
+                        <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
+                            <Sparkles className="text-[var(--accent-green)]" size={20} />
+                            Your Self-Care Toolbox
+                        </h2>
+                        <SelfCareToolbox />
+                    </section>
 
-                        {/* Mood Lifters */}
-                        <div className="lg:col-span-2 space-y-4">
-                            <h2 className="text-xl font-semibold mb-4">Mood Lifters</h2>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {moodLifters.map((lifter) => {
-                                    const Icon = lifter.icon;
-                                    return (
-                                        <div
-                                            key={lifter.title}
-                                            className="card hover:shadow-lg transition-shadow cursor-pointer"
-                                        >
-                                            <div className={`w-12 h-12 rounded-lg bg-gradient-to-br ${lifter.color} flex items-center justify-center mb-4`}>
-                                                <Icon size={24} className="text-white" />
-                                            </div>
-                                            <h3 className="font-semibold mb-1">{lifter.title}</h3>
-                                            <p className="text-sm text-[var(--text-secondary)]">
-                                                {lifter.description}
-                                            </p>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        </div>
-
-                        {/* Crisis Resources */}
-                        <div className="lg:col-span-3 card bg-gradient-to-br from-red-500 to-pink-500 text-white">
-                            <div className="flex items-start gap-4">
-                                <Heart size={32} className="flex-shrink-0 mt-1" />
-                                <div className="flex-1">
-                                    <h3 className="font-semibold text-lg mb-2">Need Immediate Support?</h3>
-                                    <p className="mb-4 opacity-90">
-                                        If you&apos;re experiencing a mental health crisis, please reach out to a professional.
-                                    </p>
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                                        <div className="bg-white bg-opacity-20 rounded-lg p-3">
-                                            <div className="text-xs opacity-75 mb-1">National Suicide Prevention</div>
-                                            <div className="font-bold text-lg">988</div>
-                                        </div>
-                                        <div className="bg-white bg-opacity-20 rounded-lg p-3">
-                                            <div className="text-xs opacity-75 mb-1">Crisis Text Line</div>
-                                            <div className="font-bold text-lg">Text HOME to 741741</div>
-                                        </div>
-                                        <div className="bg-white bg-opacity-20 rounded-lg p-3">
-                                            <div className="text-xs opacity-75 mb-1">Emergency</div>
-                                            <div className="font-bold text-lg">911</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                         {/* Affirmations */}
-                        <div className="lg:col-span-2 card">
-                            <h3 className="font-semibold mb-4">Daily Affirmations</h3>
-                            <div className="space-y-3 min-h-[200px]">
+                        <div className="lg:col-span-2 card bg-gradient-to-br from-[var(--bg-card)] to-[var(--bg-secondary)]/30 border-2 border-dashed border-[var(--border-color)]">
+                            <h3 className="font-bold mb-4 flex items-center gap-2">
+                                <BookOpen size={18} className="text-[var(--accent-green)]" />
+                                Daily Affirmations
+                            </h3>
+                            <div className="space-y-4 min-h-[220px]">
                                 {currentAffirmations.length > 0 ? (
                                     currentAffirmations.map((text, i) => (
-                                        <div key={i} className="p-4 bg-[var(--bg-secondary)] rounded-lg italic animate-in fade-in slide-in-from-bottom-2 duration-500" style={{ animationDelay: `${i * 100}ms` }}>
+                                        <div key={i} className="p-5 bg-[var(--bg-card)] rounded-2xl italic shadow-sm hover:shadow-md transition-shadow animate-in fade-in slide-in-from-bottom-2 duration-500" style={{ animationDelay: `${i * 100}ms` }}>
                                             &quot;{text}&quot;
                                         </div>
                                     ))
                                 ) : (
                                     <div className="flex items-center justify-center h-full text-[var(--text-secondary)]">
-                                        Loading inspiration...
+                                        <LoadingSpinner />
                                     </div>
                                 )}
                             </div>
                             <button
                                 onClick={handleGenerate}
-                                className="btn-secondary w-full mt-4 hover:scale-[1.02] active:scale-95 transition-all"
+                                className="w-full mt-6 py-3 bg-[var(--bg-secondary)] text-[var(--text-primary)] rounded-2xl font-bold hover:bg-[var(--border-color)] transition-all"
                             >
-                                Generate New Affirmation
+                                GENERATE NEW AFFIRMATIONS
                             </button>
                         </div>
 
-                        {/* Progress Tracker */}
-                        <div className="lg:col-span-1 card">
-                            <h3 className="font-semibold mb-4">Self-Care Streak</h3>
-                            <div className="text-center mb-4">
-                                <div className="text-5xl font-bold text-[var(--accent-green)]">7</div>
-                                <div className="text-sm text-[var(--text-secondary)]">days in a row</div>
+                        {/* Progress Tracker / Activity Summary */}
+                        <div className="lg:col-span-1 card border-2 border-[var(--accent-green)]/20">
+                            <h3 className="font-bold mb-4 flex items-center gap-2">
+                                <Activity size={18} className="text-[var(--accent-green)]" />
+                                Active Streak
+                            </h3>
+                            <div className="text-center mb-6 p-6 bg-[var(--accent-green)]/5 rounded-3xl">
+                                <div className="text-6xl font-black text-[var(--accent-green)]">7</div>
+                                <div className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-widest mt-2">days in a row</div>
                             </div>
-                            <div className="space-y-2">
-                                <div className="flex items-center justify-between text-sm">
-                                    <span>Breathing exercises</span>
-                                    <span className="text-[var(--accent-green)]">✓</span>
+                            <div className="space-y-3">
+                                <div className="flex items-center justify-between text-sm p-3 bg-[var(--bg-secondary)]/50 rounded-xl">
+                                    <span className="font-medium">Breathing Sessions</span>
+                                    <span className="bg-[var(--accent-green)] text-white text-[10px] px-2 py-1 rounded-full font-bold">DONE</span>
                                 </div>
-                                <div className="flex items-center justify-between text-sm">
-                                    <span>Journaling</span>
-                                    <span className="text-[var(--accent-green)]">✓</span>
+                                <div className="flex items-center justify-between text-sm p-3 bg-[var(--bg-secondary)]/50 rounded-xl opacity-60">
+                                    <span className="font-medium">Meditation</span>
+                                    <span className="text-[var(--text-secondary)] text-[10px] px-2 py-1 rounded-full font-bold">PENDING</span>
                                 </div>
-                                <div className="flex items-center justify-between text-sm">
-                                    <span>Mindful break</span>
-                                    <span className="text-[var(--text-secondary)]">○</span>
+                                <div className="flex items-center justify-between text-sm p-3 bg-[var(--bg-secondary)]/50 rounded-xl opacity-60">
+                                    <span className="font-medium">Creative Doodle</span>
+                                    <span className="text-[var(--text-secondary)] text-[10px] px-2 py-1 rounded-full font-bold">OPTIONAL</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Crisis Resources (High Visibility) */}
+                        <div className="lg:col-span-3 card bg-gradient-to-br from-red-500 to-rose-600 text-white shadow-xl shadow-red-200">
+                            <div className="flex flex-col md:flex-row items-center gap-6">
+                                <div className="bg-white/20 p-4 rounded-3xl">
+                                    <Heart size={48} className="fill-white" />
+                                </div>
+                                <div className="flex-1 text-center md:text-left">
+                                    <h3 className="font-bold text-2xl mb-2 text-white">Need Immediate Support?</h3>
+                                    <p className="mb-6 opacity-90 font-medium">
+                                        Your safety is our priority. If you&apos;re feeling overwhelmed or in crisis, these resources are available 24/7.
+                                    </p>
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20">
+                                            <div className="text-[10px] uppercase font-black opacity-70 mb-1">National Suicide Prevention</div>
+                                            <div className="font-black text-2xl">988</div>
+                                        </div>
+                                        <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20">
+                                            <div className="text-[10px] uppercase font-black opacity-70 mb-1">Crisis Text Line</div>
+                                            <div className="font-black text-2xl">HOME to 741741</div>
+                                        </div>
+                                        <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20 text-center flex flex-col justify-center">
+                                            <button className="bg-white text-rose-600 font-bold py-2 rounded-xl text-sm">EMERGENCY: 911</button>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>

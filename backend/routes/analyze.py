@@ -371,28 +371,56 @@ async def get_history_summary(db: Session = Depends(get_db)):
     """Fetch count, intensity and dominant emotion per day for heatmap"""
     try:
         from sqlalchemy import func
+        from models.database import MoodLog
         
-        # Pull all relevant data for the last 6 months to process dominant emotions
-        # (Doing aggregation in Python to accurately determine "dominant" across multiple entries)
+        # Pull all relevant data for the last 6 months
         from datetime import datetime, timedelta
         six_months_ago = datetime.now() - timedelta(days=180)
         
         analyses = db.query(Analysis).filter(Analysis.timestamp >= six_months_ago).all()
+        mood_logs = db.query(MoodLog).filter(MoodLog.created_at >= six_months_ago).all()
         
         from collections import defaultdict
         daily_stats = defaultdict(lambda: {"count": 0, "emotions": defaultdict(list)})
         
+        # Process analyses (Thought Engine / Media)
         for a in analyses:
             date_str = a.timestamp.date().isoformat()
             daily_stats[date_str]["count"] += 1
-            # Store all emotion scores for that day
-            for emo, score in a.emotion_scores.items():
-                daily_stats[date_str]["emotions"][emo].append(score)
+            # Store all emotion scores for that day if they exist
+            if a.emotion_scores:
+                for emo, score in a.emotion_scores.items():
+                    daily_stats[date_str]["emotions"][emo].append(score)
+        
+        # Process mood logs (Quick Check-ins)
+        # Note: Mood rating 1-5 is mapped to intensity 0.2-1.0
+        # For simplicity, we map mood ratings to a "joy" or "sadness" proxy if we want colors, 
+        # or we just use them for activity count.
+        for log in mood_logs:
+            date_str = log.created_at.date().isoformat()
+            daily_stats[date_str]["count"] += 1
+            
+            # Map mood rating to proxy emotion for heatmap coloring
+            if log.mood_rating:
+                proxy_emo = "joy" if log.mood_rating >= 4 else "sadness" if log.mood_rating <= 2 else "trust"
+                # Give it a high score for that day to influence dominant emotion
+                daily_stats[date_str]["emotions"][proxy_emo].append(log.mood_rating / 5.0)
         
         summary = []
         for date_str, stats in daily_stats.items():
             # Calculate average for each emotion
             avg_emotions = {emo: sum(scores)/len(scores) for emo, scores in stats["emotions"].items()}
+            
+            # Default if no emotion data (e.g. only activity logs)
+            if not avg_emotions:
+                summary.append({
+                    "date": date_str,
+                    "count": stats["count"],
+                    "intensity": 0.3,
+                    "dominant_emotion": "trust"
+                })
+                continue
+
             # Peak intensity for the day
             dominant = max(avg_emotions.items(), key=lambda x: x[1])
             

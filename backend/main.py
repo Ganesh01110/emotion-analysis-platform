@@ -90,8 +90,9 @@ async def health_check():
 
 
 # Import routes
-from routes import analyze
+from routes import analyze, mood
 app.include_router(analyze.router, prefix="/api", tags=["analysis"])
+app.include_router(mood.router, prefix="/api", tags=["mood"])
 
 
 if __name__ == "__main__":

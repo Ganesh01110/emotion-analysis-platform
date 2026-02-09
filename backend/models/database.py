@@ -66,3 +66,33 @@ class Analysis(Base):
     
     def __repr__(self):
         return f"<Analysis(id={self.id}, user_id={self.user_id}, timestamp={self.timestamp})>"
+
+
+class MoodLog(Base):
+    """Model for quick mood check-ins and self-care activity logging"""
+    __tablename__ = "mood_logs"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    
+    # 1-5 rating (1=Very Bad, 5=Very Good)
+    mood_rating = Column(Integer, nullable=True)
+    
+    # Trigger/Reason (e.g., "work", "family", "hobbies")
+    trigger_tag = Column(String(50), nullable=True)
+    
+    # Emotional nuance (e.g., "anxious", "grateful", "overwhelmed")
+    nuance_tag = Column(String(50), nullable=True)
+    
+    # Activity logging (for Self-Care timer)
+    activity_type = Column(String(50), nullable=True) # "meditation", "breathing", "doodle"
+    duration = Column(Integer, nullable=True) # Duration in seconds
+    
+    # Timestamp
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
+    
+    # Relationship to user
+    user = relationship("User")
+    
+    def __repr__(self):
+        return f"<MoodLog(id={self.id}, user_id={self.user_id}, mood={self.mood_rating})>"
