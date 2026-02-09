@@ -251,7 +251,7 @@ export default function SelfCareToolbox() {
                                             <button
                                                 disabled={seconds === 0}
                                                 onClick={handleStop}
-                                                className="flex-1 py-3 bg-[var(--text-primary)] text-white rounded-xl font-semibold shadow-md hover:scale-[1.01] active:scale-98 transition-all disabled:opacity-20 disabled:pointer-events-none text-xs tracking-wider uppercase"
+                                                className={`flex-1 py-3 bg-gradient-to-br ${currentTool?.color} text-white rounded-xl font-semibold shadow-md shadow-black/10 hover:scale-[1.01] active:scale-98 transition-all disabled:opacity-20 disabled:pointer-events-none text-xs tracking-wider uppercase`}
                                             >
                                                 FINISH
                                             </button>
