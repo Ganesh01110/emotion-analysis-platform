@@ -8,7 +8,7 @@ import UserHeader from '../components/UserHeader';
 import { useAuth } from '../hooks/useAuth';
 import dynamic from 'next/dynamic';
 import LoadingSpinner from '../components/LoadingSpinner';
-import { Sparkles, Link as LinkIcon, Mic, PieChart, Activity, AlignLeft, Heart } from 'lucide-react';
+import { Sparkles, Link as LinkIcon, Mic, PieChart, Activity, AlignLeft } from 'lucide-react';
 import MoodCheckIn from '../components/MoodCheckIn';
 const EmotionWheel = dynamic(() => import('../components/EmotionWheel'), {
     loading: () => <LoadingSpinner />,
@@ -175,7 +175,7 @@ export default function DashboardPage() {
                 </header>
 
                 {/* Mood Check-In (High Priority) */}
-                <div className="mb-8">
+                <div className="mb-2">
                     <MoodCheckIn onComplete={() => fetchDashboardData()} />
                 </div>
 
