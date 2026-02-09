@@ -378,8 +378,6 @@ async def get_history_summary(db: Session = Depends(get_db)):
         six_months_ago = datetime.now() - timedelta(days=180)
         
         analyses = db.query(Analysis).filter(Analysis.timestamp >= six_months_ago).all()
-        mood_logs = db.query(MoodLog).filter(MoodLog.created_at >= six_months_ago).all()
-        
         from collections import defaultdict
         daily_stats = defaultdict(lambda: {"count": 0, "emotions": defaultdict(list)})
         
@@ -393,18 +391,21 @@ async def get_history_summary(db: Session = Depends(get_db)):
                     daily_stats[date_str]["emotions"][emo].append(score)
         
         # Process mood logs (Quick Check-ins)
-        # Note: Mood rating 1-5 is mapped to intensity 0.2-1.0
-        # For simplicity, we map mood ratings to a "joy" or "sadness" proxy if we want colors, 
-        # or we just use them for activity count.
-        for log in mood_logs:
-            date_str = log.created_at.date().isoformat()
-            daily_stats[date_str]["count"] += 1
-            
-            # Map mood rating to proxy emotion for heatmap coloring
-            if log.mood_rating:
-                proxy_emo = "joy" if log.mood_rating >= 4 else "sadness" if log.mood_rating <= 2 else "trust"
-                # Give it a high score for that day to influence dominant emotion
-                daily_stats[date_str]["emotions"][proxy_emo].append(log.mood_rating / 5.0)
+        try:
+            mood_logs = db.query(MoodLog).filter(MoodLog.created_at >= six_months_ago).all()
+            for log in mood_logs:
+                date_str = log.created_at.date().isoformat()
+                daily_stats[date_str]["count"] += 1
+                
+                # Map mood rating to proxy emotion for heatmap coloring
+                if log.mood_rating:
+                    proxy_emo = "joy" if log.mood_rating >= 4 else "sadness" if log.mood_rating <= 2 else "trust"
+                    # Give it a high score for that day to influence dominant emotion
+                    daily_stats[date_str]["emotions"][proxy_emo].append(log.mood_rating / 5.0)
+        except Exception as inner_e:
+            import logging
+            logging.getLogger(__name__).warning(f"MoodLog fetch error during summary: {inner_e}")
+            # Continue without mood logs
         
         summary = []
         for date_str, stats in daily_stats.items():

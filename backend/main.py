@@ -29,6 +29,9 @@ async def lifespan(app: FastAPI):
     model_name = os.getenv("HF_MODEL_NAME", "bhadresh-savani/distilbert-base-uncased-emotion")
     
     try:
+        from models.connection import init_db
+        init_db()
+        
         ml_models["emotion_classifier"] = pipeline(
             "text-classification",
             model=model_name,
