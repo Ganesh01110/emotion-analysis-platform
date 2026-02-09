@@ -9,19 +9,23 @@ from main import app
 from utils.encryption import EncryptionManager
 import os
 
-client = TestClient(app)
+@pytest.fixture
+def client():
+    """Test client fixture that handles lifespan events"""
+    with TestClient(app) as c:
+        yield c
 
 
-def test_health_check():
+def test_health_check(client):
     """Test the health check endpoint"""
     response = client.get("/health")
     assert response.status_code == 200
     data = response.json()
-    assert data["status"] == "healthy"
-    assert "model_loaded" in data
+    assert data["status"] == "ok"
+    assert "ai_model" in data
 
 
-def test_analyze_text():
+def test_analyze_text(client):
     """Test text analysis endpoint"""
     response = client.post(
         "/api/analyze",
@@ -48,7 +52,7 @@ def test_analyze_text():
     assert data["dominant_emotion"] in ["joy", "anticipation"]
 
 
-def test_analyze_text_invalid():
+def test_analyze_text_invalid(client):
     """Test analysis with invalid input"""
     response = client.post(
         "/api/analyze",
@@ -57,7 +61,7 @@ def test_analyze_text_invalid():
     assert response.status_code == 422  # Validation error
 
 
-def test_agent_modes():
+def test_agent_modes(client):
     """Test different agent modes"""
     text = "I am feeling anxious about work"
     

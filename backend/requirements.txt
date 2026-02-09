@@ -27,3 +27,9 @@ redis
 firebase-admin
 lxml
 newspaper3k
+
+# Dev tools
+pytest
+pytest-cov
+pylint
+flake8

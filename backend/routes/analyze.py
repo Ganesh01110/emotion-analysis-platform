@@ -4,7 +4,7 @@ Handles text and media analysis endpoints
 """
 
 from fastapi import APIRouter, HTTPException, Depends, Header
-from pydantic import BaseModel, HttpUrl
+from pydantic import BaseModel, HttpUrl, Field
 from typing import Optional, Dict, List
 import logging
 from sqlalchemy.orm import Session
@@ -18,7 +18,7 @@ router = APIRouter()
 
 class TextAnalysisRequest(BaseModel):
     """Request model for text analysis"""
-    text: str
+    text: str = Field(..., min_length=1)
     agent_mode: Optional[str] = "analytical"  # counselor, analytical, brutally_honest
     
 

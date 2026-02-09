@@ -4,7 +4,7 @@ AES-256 Encryption utilities for securing user thoughts
 
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.backends import default_backend
 import base64
 import os
@@ -40,8 +40,8 @@ class EncryptionManager:
         Returns:
             Fernet cipher instance
         """
-        # Use PBKDF2 to derive a proper 32-byte key
-        kdf = PBKDF2(
+        # Use PBKDF2HMAC to derive a proper 32-byte key
+        kdf = PBKDF2HMAC(
             algorithm=hashes.SHA256(),
             length=32,
             salt=b'emotion_analysis_salt',  # In production, use random salt per user

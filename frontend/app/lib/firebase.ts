@@ -17,7 +17,7 @@ const firebaseConfig = {
 const isConfigValid = firebaseConfig.apiKey && firebaseConfig.apiKey !== 'undefined';
 
 const app = getApps().length === 0
-    ? (isConfigValid ? initializeApp(firebaseConfig) : null)
+    ? (isConfigValid ? initializeApp(firebaseConfig) : undefined)
     : getApps()[0];
 
 const auth = app ? getAuth(app) : {

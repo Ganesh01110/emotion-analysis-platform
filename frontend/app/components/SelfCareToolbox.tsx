@@ -31,6 +31,25 @@ export default function SelfCareToolbox() {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const isDrawingRef = useRef(false);
 
+    const handleStop = useCallback(async () => {
+        setIsActive(false);
+        setIsFinished(true);
+
+        try {
+            await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/mood/check-in`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    activity_type: selectedTool,
+                    duration: seconds,
+                    nuance_tag: 'Self-Care'
+                }),
+            });
+        } catch (error) {
+            console.error('Error saving activity:', error);
+        }
+    }, [selectedTool, seconds]);
+
     useEffect(() => {
         let interval: NodeJS.Timeout;
         if (isActive) {
@@ -79,25 +98,6 @@ export default function SelfCareToolbox() {
             }
         }
     }, [selectedTool, isFinished]);
-
-    const handleStop = useCallback(async () => {
-        setIsActive(false);
-        setIsFinished(true);
-
-        try {
-            await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/mood/check-in`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    activity_type: selectedTool,
-                    duration: seconds,
-                    nuance_tag: 'Self-Care'
-                }),
-            });
-        } catch (error) {
-            console.error('Error saving activity:', error);
-        }
-    }, [selectedTool, seconds]);
 
     const reset = () => {
         if (isActive && !confirm("Stop current session?")) return;
