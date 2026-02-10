@@ -1,7 +1,4 @@
-"""
-Dashboard Page
-Main dashboard with Bento Grid layout
-"""
+/* Comment */
 
 'use client';
 
@@ -262,3 +259,4 @@ export default function DashboardPage() {
         </div>
     );
 }
+

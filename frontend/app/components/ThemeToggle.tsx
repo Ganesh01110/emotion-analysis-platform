@@ -1,7 +1,4 @@
-"""
-Theme Toggle Component
-Dark / Light mode switcher
-"""
+/* Comment */
 
 'use client';
 
@@ -46,3 +43,4 @@ export default function ThemeToggle() {
         </button>
     );
 }
+

@@ -1,7 +1,4 @@
-"""
-Navigation Component
-Responsive sidebar and hamburger menu
-"""
+/* Comment */
 
 'use client';
 
@@ -113,3 +110,4 @@ export default function Navigation() {
         </>
     );
 }
+

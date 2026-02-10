@@ -106,10 +106,10 @@ jobs:
       run: |
         if [ "${{ job.status }}" == "success" ]; then
           curl -H "Content-Type: application/json" \
-               -d '{"content": "✅ CI/CD Pipeline passed successfully!"}' \
+               -d '{"content": "✅ CI/CD Pipeline of metal health app passed successfully!"}' \
                $DISCORD_WEBHOOK
         else
           curl -H "Content-Type: application/json" \
-               -d '{"content": "❌ CI/CD Pipeline failed!"}' \
+               -d '{"content": "❌ CI/CD Pipeline of metal health app failed!"}' \
                $DISCORD_WEBHOOK
         fi

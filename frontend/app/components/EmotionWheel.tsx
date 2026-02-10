@@ -1,7 +1,4 @@
-"""
-Emotion Wheel Component
-D3.js - based layered donut chart for 8 - emotion visualization
-"""
+/* Comment */
 
 'use client';
 
@@ -136,3 +133,4 @@ export default function EmotionWheel({ scores, width = 400, height = 400 }: Emot
         </div>
     );
 }
+

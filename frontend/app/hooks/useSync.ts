@@ -1,7 +1,4 @@
-"""
-useSync Hook
-Custom React hook for offline sync functionality
-"""
+/* Comment */
 
 'use client';
 
@@ -85,3 +82,4 @@ export function useSync() {
 
     return { isOnline, isSyncing, syncPendingData };
 }
+

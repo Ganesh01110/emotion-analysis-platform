@@ -1,7 +1,4 @@
-"""
-Spider / Radar Chart Component
-For single entry emotion analysis visualization
-"""
+/* Comment */
 
 'use client';
 
@@ -160,3 +157,4 @@ export default function SpiderChart({ scores, width = 400, height = 400 }: Spide
         </div>
     );
 }
+

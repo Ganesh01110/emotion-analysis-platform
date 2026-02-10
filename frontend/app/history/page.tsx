@@ -1,7 +1,4 @@
-"""
-History Page
-View past analyses with filtering and search
-"""
+/* Comment */
 
 'use client';
 
@@ -183,3 +180,4 @@ export default function HistoryPage() {
         </div>
     );
 }
+

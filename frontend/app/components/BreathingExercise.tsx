@@ -1,7 +1,4 @@
-"""
-Breathing Exercise Component
-Guided breathing for stress relief
-"""
+/* Comment */
 
 'use client';
 
@@ -105,3 +102,4 @@ export default function BreathingExercise() {
         </div>
     );
 }
+

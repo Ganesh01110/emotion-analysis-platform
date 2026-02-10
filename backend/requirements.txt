@@ -1,16 +1,28 @@
+# Core dependencies
 fastapi==0.109.0
 uvicorn[standard]==0.27.0
-transformers==4.37.2
-torch==2.2.0
+python-dotenv==1.0.0
+
+# AI/ML
+transformers==4.37.0
+torch>=2.0.0
+sentencepiece==0.1.99
+
+# Database
 sqlalchemy==2.0.25
 psycopg2-binary==2.9.9
-redis==5.0.1
+alembic==1.13.1
+
+# Security
+cryptography==42.0.2
+
+# Utilities
 beautifulsoup4==4.12.3
 requests==2.31.0
 python-dotenv==1.0.1
 pydantic==2.6.0
 pydantic-settings==2.1.0
-cryptography==42.0.2
+redis==5.0.1
 firebase-admin==6.4.0
 lxml==5.1.0
 newspaper3k==0.2.8

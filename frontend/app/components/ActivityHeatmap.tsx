@@ -1,7 +1,4 @@
-"""
-Activity Heatmap Component
-GitHub - style contribution heatmap for tracking user engagement
-"""
+/* Comment */
 
 'use client';
 
@@ -119,3 +116,4 @@ export default function ActivityHeatmap({ data, width = 800, height = 150 }: Act
         </div>
     );
 }
+

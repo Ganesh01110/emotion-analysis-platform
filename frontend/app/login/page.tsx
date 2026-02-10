@@ -1,7 +1,4 @@
-"""
-Login Page
-Firebase authentication with email / password and Google
-"""
+/* Comment */
 
 'use client';
 
@@ -132,3 +129,4 @@ export default function LoginPage() {
         </div>
     );
 }
+

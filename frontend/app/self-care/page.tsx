@@ -1,7 +1,7 @@
-"""
-Self - Care Page
-Adaptive care features based on emotional state
-"""
+/*
+ * Self-Care Page
+ * Adaptive care features based on emotional state
+ */
 
 'use client';
 
@@ -154,3 +154,4 @@ export default function SelfCarePage() {
         </div>
     );
 }
+
