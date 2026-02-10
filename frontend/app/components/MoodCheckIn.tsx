@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useAuth } from '../hooks/useAuth';
 import {
     Briefcase, GraduationCap, Users, Heart, Activity,
     Smile, Sun, Palette, DollarSign, PartyPopper,
@@ -44,6 +45,7 @@ interface MoodCheckInProps {
 }
 
 export default function MoodCheckIn({ onComplete }: MoodCheckInProps) {
+    const { getToken } = useAuth();
     const [step, setStep] = useState(1);
     const [selectedMood, setSelectedMood] = useState<number | null>(null);
     const [selectedTrigger, setSelectedTrigger] = useState<string | null>(null);
@@ -51,11 +53,16 @@ export default function MoodCheckIn({ onComplete }: MoodCheckInProps) {
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleSave = async () => {
+        const token = await getToken();
+
         setIsSubmitting(true);
         try {
             const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/mood/check-in`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
                 body: JSON.stringify({
                     mood_rating: selectedMood,
                     trigger_tag: selectedTrigger,

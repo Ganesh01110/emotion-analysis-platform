@@ -23,7 +23,7 @@ To automate the deployment from GitHub, add these to your GitHub Repo (**Setting
 ### Method A: Automated Sync (Recommended)
 This method automatically pushes your `backend/` folder to the Hugging Face Space whenever you push to GitHub.
 
-I have created a new workflow file for this: [.github/workflows/hf-sync.yml](file:///.github/workflows/hf-sync.yml).
+I have created a new workflow file for this: [.github/workflows/hf-sync.yml](../.github/workflows/hf-sync.yml).
 
 ### Method B: Manual Push (CLI)
 If you prefer to push manually:
@@ -45,4 +45,4 @@ If you want to host the frontend on Hugging Face as well:
 3. Use a similar GitHub Action to sync the `frontend/` directory.
 
 > [!TIP]
-> For the best performance with Next.js, consider using [Vercel](file:///docs/DEPLOY_FRONTEND.md) for the frontend instead.
+> For the best performance with Next.js, consider using [Vercel](DEPLOY_FRONTEND.md) for the frontend instead.

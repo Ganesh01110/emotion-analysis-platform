@@ -140,14 +140,19 @@ def generate_agent_response(scores: EmotionScores, mode: str, dominant: str) -> 
     return responses.get(mode, {}).get(dominant, default_response)
 
 
+from utils.auth import get_current_user
+
+# ... router and models ...
+
 @router.post("/analyze", response_model=AnalysisResponse)
 async def analyze_text(
     request: TextAnalysisRequest,
     db: Session = Depends(get_db),
-    classifier = Depends(get_emotion_classifier)
+    classifier = Depends(get_emotion_classifier),
+    current_user: User = Depends(get_current_user)
 ):
     """
-    Analyze text and return emotion scores
+    Analyze text and return emotion scores for the authenticated user
     """
     try:
         # Run AI inference
@@ -177,22 +182,11 @@ async def analyze_text(
             trigger_words=trigger_words
         )
 
-        # PERSIST TO DATABASE
+        # PERSIST TO DATABASE (Linked to authenticated user)
         try:
-            user = db.query(User).first()
-            if not user:
-                user = User(
-                    firebase_uid="default_test_user",
-                    email="test@example.com",
-                    profile_data={"name": "Test User"}
-                )
-                db.add(user)
-                db.commit()
-                db.refresh(user)
-            
             new_analysis = Analysis(
-                user_id=user.id,
-                encrypted_text=request.text, # Storing raw for now as per user request
+                user_id=current_user.id,
+                encrypted_text=request.text,
                 emotion_scores=emotion_scores.model_dump(),
                 dominant_emotion=dominant_emotion,
                 source_type=SourceType.TEXT,
@@ -214,10 +208,11 @@ async def analyze_text(
 async def analyze_media(
     request: MediaAnalysisRequest,
     db: Session = Depends(get_db),
-    classifier = Depends(get_emotion_classifier)
+    classifier = Depends(get_emotion_classifier),
+    current_user: User = Depends(get_current_user)
 ):
     """
-    Scrape URL and analyze content and store results in DB
+    Scrape URL and analyze content for the authenticated user
     """
     try:
         from utils.scraper import scrape_article
@@ -229,7 +224,6 @@ async def analyze_media(
             raise HTTPException(status_code=400, detail="Could not extract text from URL")
         
         # Analyze the scraped text
-        # Limit to 512 chars for speed and consistent results
         raw_results = classifier(article_text[:512])[0]
         
         emotion_scores = normalize_emotion_scores(raw_results)
@@ -244,25 +238,11 @@ async def analyze_media(
             trigger_words=None
         )
         
-        # PERSIST TO DATABASE
+        # PERSIST TO DATABASE (Linked to authenticated user)
         try:
-            # For now, get or create a default user for testing
-            # In a real app, this would come from the authenticated user context
-            user = db.query(User).first()
-            if not user:
-                user = User(
-                    firebase_uid="default_test_user",
-                    email="test@example.com",
-                    profile_data={"name": "Test User"}
-                )
-                db.add(user)
-                db.commit()
-                db.refresh(user)
-            
-            # Create analysis record without text content (saves space)
             new_analysis = Analysis(
-                user_id=user.id,
-                encrypted_text=None,  # Not storing large content as per requirements
+                user_id=current_user.id,
+                encrypted_text=None,
                 emotion_scores=emotion_scores.model_dump(),
                 dominant_emotion=dominant_emotion,
                 source_type=SourceType.URL,
@@ -272,12 +252,10 @@ async def analyze_media(
             
             db.add(new_analysis)
             db.commit()
-            logger.info(f"✅ Saved media analysis for URL: {request.url}")
+            logger.info(f"✅ Saved media analysis for user {current_user.id}")
             
         except Exception as db_error:
-            # Log DB error but don't fail the request if analysis succeeded
             logger.error(f"❌ Database focus error: {db_error}")
-            # We still return the response_data because the analysis was successful
             
         return response_data
         
@@ -297,11 +275,13 @@ async def get_history(
     search: Optional[str] = None,
     start_date: Optional[str] = None,
     end_date: Optional[str] = None,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
-    """Fetch paginated and filtered analysis history"""
+    """Fetch paginated history for the authenticated user only"""
     try:
-        query = db.query(Analysis)
+        # Base query filtered by current user
+        query = db.query(Analysis).filter(Analysis.user_id == current_user.id)
         
         # Filtering
         if source_type:
@@ -310,7 +290,6 @@ async def get_history(
             query = query.filter(Analysis.dominant_emotion == emotion)
         if search:
             search_query = f"%{search}%"
-            # Search in text or URL
             query = query.filter(
                 (Analysis.encrypted_text.ilike(search_query)) | 
                 (Analysis.source_url.ilike(search_query))
@@ -328,7 +307,6 @@ async def get_history(
         if end_date:
             try:
                 from datetime import datetime
-                # Add 23:59:59 to include the whole end day if only date is provided
                 if 'T' not in end_date:
                     end_date += 'T23:59:59'
                 e_date = datetime.fromisoformat(end_date)
@@ -367,69 +345,64 @@ async def get_history(
 
 
 @router.get("/history/summary")
-async def get_history_summary(db: Session = Depends(get_db)):
-    """Fetch count, intensity and dominant emotion per day for heatmap"""
+async def get_history_summary(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Fetch heatmap summary for the authenticated user only"""
     try:
         from sqlalchemy import func
         from models.database import MoodLog
-        
-        # Pull all relevant data for the last 6 months
         from datetime import datetime, timedelta
+        from collections import defaultdict
+        
         six_months_ago = datetime.now() - timedelta(days=180)
         
-        analyses = db.query(Analysis).filter(Analysis.timestamp >= six_months_ago).all()
-        from collections import defaultdict
+        # Filter both tables by current user
+        analyses = db.query(Analysis).filter(
+            Analysis.user_id == current_user.id,
+            Analysis.timestamp >= six_months_ago
+        ).all()
+        
         daily_stats = defaultdict(lambda: {"count": 0, "emotions": defaultdict(list)})
         
-        # Process analyses (Thought Engine / Media)
+        # Process analyses
         for a in analyses:
             date_str = a.timestamp.date().isoformat()
             daily_stats[date_str]["count"] += 1
-            # Store all emotion scores for that day if they exist
             if a.emotion_scores:
                 for emo, score in a.emotion_scores.items():
                     daily_stats[date_str]["emotions"][emo].append(score)
         
-        # Process mood logs (Quick Check-ins)
+        # Process mood logs
         try:
-            mood_logs = db.query(MoodLog).filter(MoodLog.created_at >= six_months_ago).all()
+            mood_logs = db.query(MoodLog).filter(
+                MoodLog.user_id == current_user.id,
+                MoodLog.created_at >= six_months_ago
+            ).all()
+            
             for log in mood_logs:
                 date_str = log.created_at.date().isoformat()
                 daily_stats[date_str]["count"] += 1
-                
-                # Map mood rating to proxy emotion for heatmap coloring
                 if log.mood_rating:
                     proxy_emo = "joy" if log.mood_rating >= 4 else "sadness" if log.mood_rating <= 2 else "trust"
-                    # Give it a high score for that day to influence dominant emotion
                     daily_stats[date_str]["emotions"][proxy_emo].append(log.mood_rating / 5.0)
         except Exception as inner_e:
-            import logging
-            logging.getLogger(__name__).warning(f"MoodLog fetch error during summary: {inner_e}")
-            # Continue without mood logs
+            logger.warning(f"MoodLog fetch error: {inner_e}")
         
         summary = []
         for date_str, stats in daily_stats.items():
-            # Calculate average for each emotion
             avg_emotions = {emo: sum(scores)/len(scores) for emo, scores in stats["emotions"].items()}
             
-            # Default if no emotion data (e.g. only activity logs)
             if not avg_emotions:
                 summary.append({
-                    "date": date_str,
-                    "count": stats["count"],
-                    "intensity": 0.3,
-                    "dominant_emotion": "trust"
+                    "date": date_str, "count": stats["count"], "intensity": 0.3, "dominant_emotion": "trust"
                 })
                 continue
 
-            # Peak intensity for the day
             dominant = max(avg_emotions.items(), key=lambda x: x[1])
-            
             summary.append({
-                "date": date_str,
-                "count": stats["count"],
-                "intensity": dominant[1],
-                "dominant_emotion": dominant[0]
+                "date": date_str, "count": stats["count"], "intensity": dominant[1], "dominant_emotion": dominant[0]
             })
             
         return summary

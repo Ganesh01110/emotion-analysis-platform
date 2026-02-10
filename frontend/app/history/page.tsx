@@ -14,7 +14,10 @@ const EmotionWheel = dynamic(() => import('../components/EmotionWheel'), { ssr: 
 const SpiderChart = dynamic(() => import('../components/SpiderChart'), { ssr: false });
 const BarGraph = dynamic(() => import('../components/BarGraph'), { ssr: false });
 
+import { useAuth } from '../hooks/useAuth';
+
 export default function HistoryPage() {
+    const { getToken, user, loading: authLoading, isLocalDev } = useAuth();
     const [searchQuery, setSearchQuery] = useState('');
     const [filterEmotion, setFilterEmotion] = useState('all');
     const [activeHistoryTab, setActiveHistoryTab] = useState<'reflections' | 'links' | 'checkins'>('reflections');
@@ -46,15 +49,22 @@ export default function HistoryPage() {
 
     useEffect(() => {
         const fetchData = async () => {
+            const token = await getToken();
+            if (!token && !isLocalDev) return;
+
             setLoading(true);
             try {
                 // Fetch Heatmap Summary (Always needed)
-                const summaryRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/history/summary`);
+                const summaryRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/history/summary`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
                 if (summaryRes.ok) setHeatmapData(await summaryRes.json());
 
                 if (activeHistoryTab === 'checkins') {
                     // Fetch Mood History
-                    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/mood/history?page=${currentPage}&limit=${ITEMS_PER_PAGE}`);
+                    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/mood/history?page=${currentPage}&limit=${ITEMS_PER_PAGE}`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
                     if (res.ok) {
                         const data = await res.json();
                         setMoodHistory(data.items);
@@ -71,7 +81,9 @@ export default function HistoryPage() {
                     if (filterEmotion !== 'all') historyUrl.searchParams.append('emotion', filterEmotion);
                     if (debouncedSearch) historyUrl.searchParams.append('search', debouncedSearch);
 
-                    const historyRes = await fetch(historyUrl.toString());
+                    const historyRes = await fetch(historyUrl.toString(), {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
                     if (historyRes.ok) {
                         const data = await historyRes.json();
                         setHistory(data.items);
@@ -85,8 +97,11 @@ export default function HistoryPage() {
                 setLoading(false);
             }
         };
-        fetchData();
-    }, [currentPage, activeHistoryTab, filterEmotion, debouncedSearch]);
+
+        if (!authLoading && (user || isLocalDev)) {
+            fetchData();
+        }
+    }, [currentPage, activeHistoryTab, filterEmotion, debouncedSearch, user, authLoading, isLocalDev]);
 
     const displayedEntries = history;
 

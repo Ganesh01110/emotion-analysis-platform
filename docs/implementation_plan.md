@@ -104,7 +104,7 @@ sequenceDiagram
 
 ### Core Backend (FastAPI + AI)
 
-#### [NEW] [main.py](file:///c:/Users/sahug/OneDrive/Desktop/ganeshdocs/antigravity/EmotionanalysisProject/backend/main.py)
+#### [NEW] [main.py](../backend/main.py)
 
 FastAPI application entry point with:
 - Hugging Face model initialization (`distilbert-base-uncased-emotion`)
@@ -112,7 +112,7 @@ FastAPI application entry point with:
 - Static file serving for production deployment
 - Health check endpoints
 
-#### [NEW] [routes/analyze.py](file:///c:/Users/sahug/OneDrive/Desktop/ganeshdocs/antigravity/EmotionanalysisProject/backend/routes/analyze.py)
+#### [NEW] [routes/analyze.py](../backend/routes/analyze.py)
 
 Emotion analysis endpoints:
 - `POST /analyze` - Analyze text paragraph, return 8 emotion scores (Joy, Sadness, Anger, Fear, Trust, Disgust, Surprise, Anticipation)
@@ -120,21 +120,21 @@ Emotion analysis endpoints:
 - Redis queue integration for async processing
 - Firebase token verification
 
-#### [NEW] [utils/encryption.py](file:///c:/Users/sahug/OneDrive/Desktop/ganeshdocs/antigravity/EmotionanalysisProject/backend/utils/encryption.py)
+#### [NEW] [utils/encryption.py](../backend/utils/encryption.py)
 
 AES-256 encryption utilities:
 - `encrypt_text()` - Encrypt user thoughts before DB storage
 - `decrypt_text()` - Decrypt for analysis/display
 - Key management from environment variables
 
-#### [NEW] [utils/scraper.py](file:///c:/Users/sahug/OneDrive/Desktop/ganeshdocs/antigravity/EmotionanalysisProject/backend/utils/scraper.py)
+#### [NEW] [utils/scraper.py](../backend/utils/scraper.py)
 
 Media content scraper:
 - BeautifulSoup4 for article extraction
 - Clean text extraction (remove ads, sidebars)
 - Error handling for invalid URLs
 
-#### [NEW] [models/database.py](file:///c:/Users/sahug/OneDrive/Desktop/ganeshdocs/antigravity/EmotionanalysisProject/backend/models/database.py)
+#### [NEW] [models/database.py](../backend/models/database.py)
 
 SQLAlchemy models:
 - `User` table (Firebase UID, profile)
@@ -145,7 +145,7 @@ SQLAlchemy models:
 
 ### Frontend (Next.js + React)
 
-#### [NEW] [app/layout.tsx](file:///c:/Users/sahug/OneDrive/Desktop/ganeshdocs/antigravity/EmotionanalysisProject/frontend/app/layout.tsx)
+#### [NEW] [app/layout.tsx](../frontend/app/layout.tsx)
 
 Root layout with:
 - Firebase Auth provider
@@ -153,7 +153,7 @@ Root layout with:
 - PWA manifest configuration
 - Global CSS imports
 
-#### [NEW] [app/dashboard/page.tsx](file:///c:/Users/sahug/OneDrive/Desktop/ganeshdocs/antigravity/EmotionanalysisProject/frontend/app/dashboard/page.tsx)
+#### [NEW] [app/dashboard/page.tsx](../frontend/app/dashboard/page.tsx)
 
 Main dashboard with Bento Grid layout:
 - Thought input card with tabs (My Thoughts / Analyze Media)
@@ -162,7 +162,7 @@ Main dashboard with Bento Grid layout:
 - Activity heatmap
 - Adaptive "Care Corner" based on emotions
 
-#### [NEW] [components/EmotionWheel.tsx](file:///c:/Users/sahug/OneDrive/Desktop/ganeshdocs/antigravity/EmotionanalysisProject/frontend/components/EmotionWheel.tsx)
+#### [NEW] [components/EmotionWheel.tsx](../frontend/components/EmotionWheel.tsx)
 
 Layered donut chart using D3.js:
 - Inner ring: Primary emotions (8 categories)
@@ -170,28 +170,27 @@ Layered donut chart using D3.js:
 - Color-coded per Plutchik's wheel
 - Interactive hover/click for filtering
 
-#### [NEW] [components/SpiderChart.tsx](file:///c:/Users/sahug/OneDrive/Desktop/ganeshdocs/antigravity/EmotionanalysisProject/frontend/components/SpiderChart.tsx)
-
-Radar chart for single entry analysis:
+#### [NEW] [components/SpiderChart.tsx](../frontend/components/SpiderChart.tsx)radar
+- Radar chart for single entry analysis:
 - 8-axis spider map
 - Real-time updates
 - Sentence highlighting on hover
 
-#### [NEW] [components/ActivityHeatmap.tsx](file:///c:/Users/sahug/OneDrive/Desktop/ganeshdocs/antigravity/EmotionanalysisProject/frontend/components/ActivityHeatmap.tsx)
+#### [NEW] [components/ActivityHeatmap.tsx](../frontend/components/ActivityHeatmap.tsx)
 
 GitHub-style contribution heatmap:
 - Color intensity based on emotional output
 - Monthly/yearly views
 - Click to view day details
 
-#### [NEW] [components/Navigation.tsx](file:///c:/Users/sahug/OneDrive/Desktop/ganeshdocs/antigravity/EmotionanalysisProject/frontend/components/Navigation.tsx)
+#### [NEW] [components/Navigation.tsx](../frontend/components/Navigation.tsx)
 
 Responsive navigation:
 - Desktop: Fixed sidebar (w-64)
 - Mobile: Hamburger menu with slide-in drawer
 - Profile avatar and settings always visible
 
-#### [NEW] [hooks/useSync.tsx](file:///c:/Users/sahug/OneDrive/Desktop/ganeshdocs/antigravity/EmotionanalysisProject/frontend/hooks/useSync.tsx)
+#### [NEW] [hooks/useSync.tsx](../frontend/hooks/useSync.tsx)
 
 Custom hook for offline sync:
 - Monitor `navigator.onLine`
@@ -199,7 +198,7 @@ Custom hook for offline sync:
 - POST to `/analyze` endpoint
 - Clear local storage on success
 
-#### [NEW] [public/sw.js](file:///c:/Users/sahug/OneDrive/Desktop/ganeshdocs/antigravity/EmotionanalysisProject/frontend/public/sw.js)
+#### [NEW] [public/sw.js](../frontend/public/sw.js)
 
 Service Worker for PWA:
 - Cache static assets
@@ -210,7 +209,7 @@ Service Worker for PWA:
 
 ### Styling & Design System
 
-#### [NEW] [app/globals.css](file:///c:/Users/sahug/OneDrive/Desktop/ganeshdocs/antigravity/EmotionanalysisProject/frontend/app/globals.css)
+#### [NEW] [app/globals.css](../frontend/app/globals.css)
 
 CSS variables for theming:
 
@@ -240,7 +239,7 @@ CSS variables for theming:
 
 ### Configuration & DevOps
 
-#### [NEW] [docker-compose.yml](file:///c:/Users/sahug/OneDrive/Desktop/ganeshdocs/antigravity/EmotionanalysisProject/docker-compose.yml)
+#### [NEW] [docker-compose.yml](../docker-compose.yml)
 
 Multi-container setup:
 - Next.js frontend (port 3000)
@@ -248,7 +247,7 @@ Multi-container setup:
 - PostgreSQL database (port 5432)
 - Redis cache (port 6379)
 
-#### [NEW] [Dockerfile](file:///c:/Users/sahug/OneDrive/Desktop/ganeshdocs/antigravity/EmotionanalysisProject/Dockerfile)
+#### [NEW] [Dockerfile](../Dockerfile)
 
 Multi-stage build for Hugging Face Spaces:
 - Stage 1: Node.js build (Next.js static export)
@@ -256,7 +255,8 @@ Multi-stage build for Hugging Face Spaces:
 - Port 7860 for Hugging Face
 - Environment variable configuration
 
-#### [NEW] [.github/workflows/deploy.yml](file:///c:/Users/sahug/OneDrive/Desktop/ganeshdocs/antigravity/EmotionanalysisProject/.github/workflows/deploy.yml)
+#### [NEW] [.github/workflows/deploy.yml](../.github/workflows/deploy.yml)
+
 
 CI/CD pipeline:
 - Run tests on push

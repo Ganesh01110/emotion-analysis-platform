@@ -9,6 +9,11 @@ export function useAuth() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        if (!auth) {
+            setLoading(false);
+            return;
+        }
+
         const unsubscribe = onAuthStateChanged(auth, (user) => {
             setUser(user);
             setLoading(false);
@@ -18,7 +23,11 @@ export function useAuth() {
     }, []);
 
     const getDisplayName = () => {
-        if (!user) return 'User';
+        if (!user) {
+            // Check if we are in a local environment without Firebase config
+            if (auth === null) return 'Local Developer';
+            return 'User';
+        }
         if (user.displayName) return user.displayName;
         if (user.email) return user.email.split('@')[0];
         return 'User';
@@ -29,5 +38,30 @@ export function useAuth() {
         return name.charAt(0).toUpperCase();
     };
 
-    return { user, loading, getDisplayName, getInitials };
+    const getProfilePic = () => {
+        return user?.photoURL || null;
+    };
+
+    const getToken = async () => {
+        if (!user) {
+            // If auth is null, we are in local dev fallback mode
+            if (auth === null) return 'local-dev-token';
+            return null;
+        }
+        return await user.getIdToken();
+    };
+
+    const logout = async () => {
+        if (!auth) return;
+        try {
+            await auth.signOut();
+            window.location.href = '/';
+        } catch (error) {
+            console.error('Logout error:', error);
+        }
+    };
+
+    const isLocalDev = auth === null;
+
+    return { user, loading, getDisplayName, getInitials, getProfilePic, getToken, logout, isLocalDev };
 }

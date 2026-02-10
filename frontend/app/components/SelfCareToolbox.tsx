@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useAuth } from '../hooks/useAuth';
 import {
     Sparkles, Activity, Palette, BookOpen,
     Dumbbell, Timer, X, Play, Pause, RotateCcw,
@@ -17,6 +18,7 @@ const TOOLS = [
 const PRESETS = [5, 10, 15, 30];
 
 export default function SelfCareToolbox() {
+    const { getToken } = useAuth();
     const [selectedTool, setSelectedTool] = useState<string | null>(null);
     const [seconds, setSeconds] = useState(0);
     const [targetSeconds, setTargetSeconds] = useState(0);
@@ -35,10 +37,14 @@ export default function SelfCareToolbox() {
         setIsActive(false);
         setIsFinished(true);
 
+        const token = await getToken();
         try {
             await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/mood/check-in`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
                 body: JSON.stringify({
                     activity_type: selectedTool,
                     duration: seconds,
@@ -48,7 +54,7 @@ export default function SelfCareToolbox() {
         } catch (error) {
             console.error('Error saving activity:', error);
         }
-    }, [selectedTool, seconds]);
+    }, [selectedTool, seconds, getToken]);
 
     useEffect(() => {
         let interval: NodeJS.Timeout;

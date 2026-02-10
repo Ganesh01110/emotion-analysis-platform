@@ -1,7 +1,5 @@
-/* Comment */
-
 import { initializeApp, getApps } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, setPersistence, browserLocalPersistence } from 'firebase/auth';
 
 const firebaseConfig = {
     apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -13,25 +11,44 @@ const firebaseConfig = {
     measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
 
-// Initialize Firebase only if config is valid
-const isConfigValid = firebaseConfig.apiKey && firebaseConfig.apiKey !== 'undefined';
+// Initialize Firebase only if config is valid and not placeholders
+const isConfigValid = Boolean(
+    firebaseConfig.apiKey &&
+    firebaseConfig.apiKey !== 'undefined' &&
+    !firebaseConfig.apiKey.includes('xxxxx') &&
+    !firebaseConfig.projectId?.includes('xxxxx')
+);
+
 
 const app = getApps().length === 0
     ? (isConfigValid ? initializeApp(firebaseConfig) : undefined)
     : getApps()[0];
 
-const auth = app ? getAuth(app) : {
-    currentUser: null,
-    onAuthStateChanged: () => () => { },
-    signOut: async () => { },
-} as any;
+const auth = app ? getAuth(app) : null;
 
-let analytics;
-if (typeof window !== 'undefined') {
-    import('firebase/analytics').then(({ getAnalytics }) => {
-        analytics = getAnalytics(app);
+// Enable persistence
+if (auth) {
+    setPersistence(auth, browserLocalPersistence).catch((error) => {
+        console.error("Error setting auth persistence:", error);
     });
 }
 
-export { app, auth, analytics };
+const googleProvider = new GoogleAuthProvider();
+
+const signInWithGoogle = async () => {
+    if (!auth) return;
+    try {
+        await signInWithPopup(auth, googleProvider);
+    } catch (error) {
+        console.error("Error signing in", error);
+    }
+};
+
+const logout = async () => {
+    if (auth) {
+        await signOut(auth);
+    }
+};
+
+export { app, auth, signInWithGoogle, logout };
 

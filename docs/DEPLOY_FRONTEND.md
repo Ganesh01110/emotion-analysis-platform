@@ -28,7 +28,7 @@ If you want to keep everything in one place, you can host the frontend as its ow
     *   `HF_TOKEN`: (Same as backend)
     *   `HF_USERNAME`: (Same as backend)
     *   `HF_FRONTEND_SPACE_NAME`: The name of your **frontend** Space.
-4.  **Syncing**: I have created [.github/workflows/hf-frontend-sync.yml](file:///c:/Users/sahug/OneDrive/Desktop/ganeshdocs/antigravity/EmotionanalysisProject/.github/workflows/hf-frontend-sync.yml) which will automatically push your frontend to this Space.
+4.  **Syncing**: I have created [.github/workflows/hf-frontend-sync.yml](../.github/workflows/hf-frontend-sync.yml) which will automatically push your frontend to this Space.
 
 ### Port Note:
 Hugging Face uses port **7860**. I have already updated your `frontend/Dockerfile` and `next.config.ts` to support this.

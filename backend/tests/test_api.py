@@ -13,6 +13,7 @@ import os
 def client():
     """Test client fixture that handles lifespan events"""
     with TestClient(app) as c:
+        c.headers.update({"Authorization": "Bearer test-token"})
         yield c
 
 

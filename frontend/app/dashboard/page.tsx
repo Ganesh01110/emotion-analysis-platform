@@ -42,7 +42,7 @@ const emotionColors: Record<string, string> = {
 };
 
 export default function DashboardPage() {
-    const { getDisplayName } = useAuth();
+    const { getDisplayName, getToken, user, loading: authLoading, isLocalDev } = useAuth();
     const [activeTab, setActiveTab] = useState<'thoughts' | 'media' | 'url'>('thoughts');
     const [text, setText] = useState('');
     const [url, setUrl] = useState('');
@@ -57,10 +57,18 @@ export default function DashboardPage() {
     const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
     const fetchDashboardData = async () => {
+        const token = await getToken();
+        // Allow proceeding if token is null BUT we are in local dev mode
+        if (!token && !isLocalDev) return;
+
         try {
             const [historyRes, summaryRes] = await Promise.all([
-                fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/history`),
-                fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/history/summary`)
+                fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/history`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                }),
+                fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/history/summary`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                })
             ]);
 
             if (historyRes.ok) {
@@ -74,8 +82,11 @@ export default function DashboardPage() {
     };
 
     useEffect(() => {
-        fetchDashboardData();
-    }, []);
+        // Fetch if either user is logged in OR we are in local dev mode
+        if (!authLoading && (user || isLocalDev)) {
+            fetchDashboardData();
+        }
+    }, [user, authLoading, isLocalDev]);
 
     // Contextual Trend Fetching (7-day window around selected date)
     useEffect(() => {
@@ -86,6 +97,9 @@ export default function DashboardPage() {
         }
 
         const fetchContextualHistory = async () => {
+            const token = await getToken();
+            if (!token && !isLocalDev) return;
+
             try {
                 const date = new Date(selectedDate);
                 const start = new Date(date);
@@ -94,7 +108,10 @@ export default function DashboardPage() {
                 end.setDate(date.getDate() + 3);
 
                 const response = await fetch(
-                    `${process.env.NEXT_PUBLIC_API_URL}/api/history?start_date=${start.toISOString()}&end_date=${end.toISOString()}&limit=50`
+                    `${process.env.NEXT_PUBLIC_API_URL}/api/history?start_date=${start.toISOString()}&end_date=${end.toISOString()}&limit=50`,
+                    {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    }
                 );
 
                 if (response.ok) {
@@ -106,17 +123,26 @@ export default function DashboardPage() {
             }
         };
 
-        fetchContextualHistory();
-    }, [selectedDate]);
+        if (!authLoading && (user || isLocalDev)) {
+            fetchContextualHistory();
+        }
+    }, [selectedDate, user, authLoading, isLocalDev]);
 
     const handleAnalyze = async () => {
         if (!text.trim()) return;
+
+        const token = await getToken();
+        // Allow proceeding without token for local development fallback
+        // The backend has a similar fallback logic
 
         setIsAnalyzing(true);
         try {
             const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/analyze`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
                 body: JSON.stringify({ text, agent_mode: agentMode }),
             });
 
@@ -135,11 +161,16 @@ export default function DashboardPage() {
     const handleAnalyzeMedia = async () => {
         if (!url.trim()) return;
 
+        const token = await getToken();
+
         setIsAnalyzing(true);
         try {
             const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/scrape`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
                 body: JSON.stringify({ url }),
             });
 

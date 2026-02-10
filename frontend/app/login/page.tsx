@@ -20,6 +20,7 @@ export default function LoginPage() {
         setLoading(true);
 
         try {
+            if (!auth) throw new Error('Firebase Auth not initialized');
             await signInWithEmailAndPassword(auth, email, password);
             router.push('/dashboard');
         } catch (err: any) {
@@ -34,6 +35,7 @@ export default function LoginPage() {
         setLoading(true);
 
         try {
+            if (!auth) throw new Error('Firebase Auth not initialized');
             const provider = new GoogleAuthProvider();
             await signInWithPopup(auth, provider);
             router.push('/dashboard');

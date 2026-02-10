@@ -1,6 +1,23 @@
+'use client';
+
 import Link from 'next/link';
+import { useAuth } from './hooks/useAuth';
+import { signInWithGoogle } from './lib/firebase';
+import { useRouter } from 'next/navigation';
 
 export default function HomePage() {
+  const { user, loading } = useAuth();
+  const router = useRouter();
+
+  const handleGetStarted = async () => {
+    if (user) {
+      router.push('/dashboard');
+    } else {
+      await signInWithGoogle();
+      router.push('/dashboard');
+    }
+  };
+
   return (
     <main className="min-h-screen flex items-center justify-center p-8">
       <div className="text-center max-w-2xl">
@@ -11,17 +28,22 @@ export default function HomePage() {
           AI-powered emotional intelligence for your mental well-being
         </p>
         <div className="flex gap-4 justify-center">
-          <Link href="/dashboard">
-            <button className="btn-primary">
-              Get Started
-            </button>
-          </Link>
-          <button className="btn-secondary">
+          <button
+            onClick={handleGetStarted}
+            className="btn-primary"
+            disabled={loading}
+          >
+            {loading ? 'Loading...' : 'Get Started'}
+          </button>
+          <button
+            onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
+            className="btn-secondary"
+          >
             Learn More
           </button>
         </div>
 
-        <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div id="features" className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="card">
             <div className="text-4xl mb-4">🧠</div>
             <h3 className="font-semibold mb-2">AI Analysis</h3>

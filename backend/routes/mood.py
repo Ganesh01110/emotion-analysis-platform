@@ -23,29 +23,20 @@ class MoodCheckInRequest(BaseModel):
     activity_type: Optional[str] = None
     duration: Optional[int] = None
 
+from utils.auth import get_current_user
+
 @router.post("/mood/check-in")
 async def mood_check_in(
     request: MoodCheckInRequest,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
     """
-    Log a quick mood check-in or self-care activity
+    Log a quick mood check-in or self-care activity for the authenticated user
     """
     try:
-        # Get or create default user for now
-        user = db.query(User).first()
-        if not user:
-            user = User(
-                firebase_uid="default_test_user",
-                email="test@example.com",
-                profile_data={"name": "Test User"}
-            )
-            db.add(user)
-            db.commit()
-            db.refresh(user)
-            
         new_mood_log = MoodLog(
-            user_id=user.id,
+            user_id=current_user.id,
             mood_rating=request.mood_rating,
             trigger_tag=request.trigger_tag,
             nuance_tag=request.nuance_tag,
@@ -70,19 +61,20 @@ async def mood_check_in(
 async def get_mood_history(
     page: int = 1,
     limit: int = 20,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
     """
-    Fetch recent mood check-ins with pagination
+    Fetch recent mood check-ins for the authenticated user only
     """
     try:
         offset = (page - 1) * limit
         
-        # Get total count
-        total_logs = db.query(MoodLog).count()
+        # Query logs filtered by current user
+        total_logs = db.query(MoodLog).filter(MoodLog.user_id == current_user.id).count()
         
-        # Get paginated items
         logs = db.query(MoodLog)\
+            .filter(MoodLog.user_id == current_user.id)\
             .order_by(MoodLog.created_at.desc())\
             .offset(offset)\
             .limit(limit)\

@@ -70,6 +70,20 @@ venv\Scripts\activate.bat
 uvicorn main:app --reload
 ```
 
+## or : **
+```bash
+cd backend
+.\venv\Scripts\activate
+uvicorn main:app --reload --port 8000
+```
+
+
+##### Seed Local Database (Optional)
+To populate your local MariaDB with test data for charts and history:
+```bash
+cd backend
+python seed.py
+```
 
 ##### Kill Previously Running Backend/Frontend Processes
 
