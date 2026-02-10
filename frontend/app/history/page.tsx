@@ -574,15 +574,28 @@ export default function HistoryPage() {
                                     </div>
                                 </div>
 
-                                <div className="mt-auto">
-                                    <div className="flex items-center gap-4 p-4 rounded-xl bg-[var(--accent-green)]/5 border border-[var(--accent-green)]/10">
-                                        <div className="p-3 bg-[var(--accent-green)] rounded-xl text-white shadow-lg shadow-[var(--accent-green)]/20">
-                                            <Sparkles size={20} />
+                                <div className="mt-auto space-y-4">
+                                    {selectedEntry.agent_response && (
+                                        <div className="p-4 rounded-xl bg-[var(--accent-green)]/5 border border-[var(--accent-green)]/10">
+                                            <div className="flex items-center gap-2 mb-2">
+                                                <Sparkles size={16} className="text-[var(--accent-green)]" />
+                                                <h4 className="text-[10px] font-black text-[var(--accent-green)] uppercase tracking-wider">
+                                                    {selectedEntry.agent_mode || 'Counselor'} Insight
+                                                </h4>
+                                            </div>
+                                            <p className="text-xs lg:text-sm font-medium leading-relaxed opacity-90">
+                                                {selectedEntry.agent_response}
+                                            </p>
+                                        </div>
+                                    )}
+                                    <div className="flex items-center gap-4 p-4 rounded-xl bg-[var(--bg-secondary)]/50 border border-[var(--border-color)]">
+                                        <div className="p-3 bg-[var(--bg-card)] rounded-xl text-[var(--accent-green)] shadow-sm">
+                                            <PieChart size={20} />
                                         </div>
                                         <div>
-                                            <h4 className="text-xs font-black text-[var(--accent-green)] uppercase tracking-wider mb-0.5">Primary Insight</h4>
-                                            <p className="text-sm font-semibold opacity-80">
-                                                Your {selectedEntry.dominant_emotion} levels were {(selectedEntry.emotion_scores[selectedEntry.dominant_emotion] * 100).toFixed(0)}% during this reflection.
+                                            <h4 className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-wider mb-0.5">Primary Focus</h4>
+                                            <p className="text-xs font-bold opacity-80">
+                                                Your {selectedEntry.dominant_emotion} levels were {(selectedEntry.emotion_scores[selectedEntry.dominant_emotion] * 100).toFixed(0)}% during this session.
                                             </p>
                                         </div>
                                     </div>

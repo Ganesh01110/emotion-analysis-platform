@@ -55,8 +55,9 @@ class Analysis(Base):
     source_type = Column(Enum(SourceType), nullable=False)
     source_url = Column(String(512), nullable=True)
     
-    # Agent mode used
+    # Agent mode and response insights
     agent_mode = Column(String(20), nullable=True)
+    agent_response = Column(Text, nullable=True)
     
     # Timestamp
     timestamp = Column(DateTime, default=datetime.utcnow, index=True)

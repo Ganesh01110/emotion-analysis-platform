@@ -190,7 +190,8 @@ async def analyze_text(
                 emotion_scores=emotion_scores.model_dump(),
                 dominant_emotion=dominant_emotion,
                 source_type=SourceType.TEXT,
-                agent_mode=request.agent_mode
+                agent_mode=request.agent_mode,
+                agent_response=agent_response
             )
             db.add(new_analysis)
             db.commit()
@@ -331,7 +332,9 @@ async def get_history(
                     "dominant_emotion": a.dominant_emotion,
                     "source_type": a.source_type,
                     "source_url": a.source_url,
-                    "text": a.encrypted_text
+                    "text": a.encrypted_text,
+                    "agent_response": a.agent_response,
+                    "agent_mode": a.agent_mode
                 } for a in analyses
             ],
             "total": total,
@@ -353,16 +356,18 @@ async def get_history_summary(
     try:
         from sqlalchemy import func
         from models.database import MoodLog
-        from datetime import datetime, timedelta
+        from datetime import datetime, timedelta, timezone
         from collections import defaultdict
         
-        six_months_ago = datetime.now() - timedelta(days=180)
+        # Use UTC for consistency with database timestamps
+        six_months_ago = datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(days=180)
         
         # Filter both tables by current user
         analyses = db.query(Analysis).filter(
             Analysis.user_id == current_user.id,
             Analysis.timestamp >= six_months_ago
         ).all()
+        logger.info(f"📊 Found {len(analyses)} analyses for summary (User: {current_user.id})")
         
         daily_stats = defaultdict(lambda: {"count": 0, "emotions": defaultdict(list)})
         
