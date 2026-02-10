@@ -6,7 +6,7 @@ import {
     Briefcase, GraduationCap, Users, Heart, Activity,
     Smile, Sun, Palette, DollarSign, PartyPopper,
     Dumbbell, Plane, Moon, Plus, ChevronRight, CheckCircle2,
-    Frown, Meh, Smile as SmileIcon, Laugh, Angry, X
+    Frown, Meh, Smile as SmileIcon, Laugh, Angry
 } from 'lucide-react';
 
 const MOODS = [
@@ -81,12 +81,7 @@ export default function MoodCheckIn({ onComplete }: MoodCheckInProps) {
         }
     };
 
-    const reset = () => {
-        setStep(1);
-        setSelectedMood(null);
-        setSelectedTrigger(null);
-        setSelectedNuance(null);
-    };
+
 
     const renderStep1 = () => (
         <div className="flex flex-col items-center py-2">

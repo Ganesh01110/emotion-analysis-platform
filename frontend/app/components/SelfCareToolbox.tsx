@@ -3,9 +3,9 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import {
-    Sparkles, Activity, Palette, BookOpen,
-    Dumbbell, Timer, X, Play, Pause, RotateCcw,
-    CheckCircle2, Music, Wind, Clock
+    Sparkles, Palette,
+    X, Play, Pause,
+    CheckCircle2, Wind, Clock
 } from 'lucide-react';
 
 const TOOLS = [

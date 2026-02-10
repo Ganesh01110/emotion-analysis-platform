@@ -2,7 +2,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Navigation from '../components/Navigation';
 import UserHeader from '../components/UserHeader';
 import Footer from '../components/Footer';
@@ -56,7 +56,7 @@ export default function DashboardPage() {
     const [heatmapData, setHeatmapData] = useState<any[]>([]);
     const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
-    const fetchDashboardData = async () => {
+    const fetchDashboardData = useCallback(async () => {
         const token = await getToken();
         // Allow proceeding if token is null BUT we are in local dev mode
         if (!token && !isLocalDev) return;
@@ -79,14 +79,14 @@ export default function DashboardPage() {
         } catch (error) {
             console.error('Error fetching dashboard data:', error);
         }
-    };
+    }, [getToken, isLocalDev]);
 
     useEffect(() => {
         // Fetch if either user is logged in OR we are in local dev mode
         if (!authLoading && (user || isLocalDev)) {
             fetchDashboardData();
         }
-    }, [user, authLoading, isLocalDev]);
+    }, [user, authLoading, isLocalDev, fetchDashboardData]);
 
     // Contextual Trend Fetching (7-day window around selected date)
     useEffect(() => {
@@ -126,7 +126,7 @@ export default function DashboardPage() {
         if (!authLoading && (user || isLocalDev)) {
             fetchContextualHistory();
         }
-    }, [selectedDate, user, authLoading, isLocalDev]);
+    }, [selectedDate, user, authLoading, isLocalDev, getToken, fetchDashboardData]);
 
     const handleAnalyze = async () => {
         if (!text.trim()) return;
@@ -185,12 +185,6 @@ export default function DashboardPage() {
             setIsAnalyzing(false);
         }
     };
-
-    // Filter history for trend chart
-    const trendData = history.map(h => ({
-        date: h.timestamp.split('T')[0],
-        scores: h.emotion_scores
-    }));
 
     return (
         <div className="min-h-screen bg-[var(--bg-primary)]">

@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import { useAuth } from './hooks/useAuth';
 import { signInWithGoogle } from './lib/firebase';
 import { useRouter } from 'next/navigation';

@@ -66,7 +66,6 @@ export default function TriggerMap({ nodes, links, width = 600, height = 400 }: 
         // Node circles
         node.append('circle')
             .attr('r', d => d.radius)
-            // @ts-ignore
             .attr('fill', d => `var(--emotion-${d.emotion})`)
             .attr('stroke', '#fff')
             .attr('stroke-width', 1.5);

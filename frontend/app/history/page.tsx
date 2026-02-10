@@ -1,11 +1,11 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Navigation from '../components/Navigation';
 import UserHeader from '../components/UserHeader';
 import Footer from '../components/Footer';
-import ActivityHeatmap from '../components/ActivityHeatmap';
+
 import { Search, Filter, Calendar, MessageSquare, Globe, AlignLeft, PieChart, Activity, Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
 import dynamic from 'next/dynamic';
 
@@ -47,61 +47,61 @@ export default function HistoryPage() {
         setCurrentPage(1);
     }, [activeHistoryTab, filterEmotion, debouncedSearch]);
 
-    useEffect(() => {
-        const fetchData = async () => {
-            const token = await getToken();
-            if (!token && !isLocalDev) return;
+    const fetchData = useCallback(async () => {
+        const token = await getToken();
+        if (!token && !isLocalDev) return;
 
-            setLoading(true);
-            try {
-                // Fetch Heatmap Summary (Always needed)
-                const summaryRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/history/summary`, {
+        setLoading(true);
+        try {
+            // Fetch Heatmap Summary (Always needed)
+            const summaryRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/history/summary`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (summaryRes.ok) setHeatmapData(await summaryRes.json());
+
+            if (activeHistoryTab === 'checkins') {
+                // Fetch Mood History
+                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/mood/history?page=${currentPage}&limit=${ITEMS_PER_PAGE}`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
-                if (summaryRes.ok) setHeatmapData(await summaryRes.json());
-
-                if (activeHistoryTab === 'checkins') {
-                    // Fetch Mood History
-                    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/mood/history?page=${currentPage}&limit=${ITEMS_PER_PAGE}`, {
-                        headers: { 'Authorization': `Bearer ${token}` }
-                    });
-                    if (res.ok) {
-                        const data = await res.json();
-                        setMoodHistory(data.items);
-                        setTotalItems(data.total);
-                        setTotalPages(data.pages);
-                    }
-                } else {
-                    // Fetch Reflections or Media
-                    const sourceType = activeHistoryTab === 'reflections' ? 'text' : 'url';
-                    const historyUrl = new URL(`${process.env.NEXT_PUBLIC_API_URL}/api/history`);
-                    historyUrl.searchParams.append('page', currentPage.toString());
-                    historyUrl.searchParams.append('limit', ITEMS_PER_PAGE.toString());
-                    historyUrl.searchParams.append('source_type', sourceType);
-                    if (filterEmotion !== 'all') historyUrl.searchParams.append('emotion', filterEmotion);
-                    if (debouncedSearch) historyUrl.searchParams.append('search', debouncedSearch);
-
-                    const historyRes = await fetch(historyUrl.toString(), {
-                        headers: { 'Authorization': `Bearer ${token}` }
-                    });
-                    if (historyRes.ok) {
-                        const data = await historyRes.json();
-                        setHistory(data.items);
-                        setTotalPages(data.pages);
-                        setTotalItems(data.total);
-                    }
+                if (res.ok) {
+                    const data = await res.json();
+                    setMoodHistory(data.items);
+                    setTotalItems(data.total);
+                    setTotalPages(data.pages);
                 }
-            } catch (error) {
-                console.error('Error fetching history:', error);
-            } finally {
-                setLoading(false);
-            }
-        };
+            } else {
+                // Fetch Reflections or Media
+                const sourceType = activeHistoryTab === 'reflections' ? 'text' : 'url';
+                const historyUrl = new URL(`${process.env.NEXT_PUBLIC_API_URL}/api/history`);
+                historyUrl.searchParams.append('page', currentPage.toString());
+                historyUrl.searchParams.append('limit', ITEMS_PER_PAGE.toString());
+                historyUrl.searchParams.append('source_type', sourceType);
+                if (filterEmotion !== 'all') historyUrl.searchParams.append('emotion', filterEmotion);
+                if (debouncedSearch) historyUrl.searchParams.append('search', debouncedSearch);
 
+                const historyRes = await fetch(historyUrl.toString(), {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (historyRes.ok) {
+                    const data = await historyRes.json();
+                    setHistory(data.items);
+                    setTotalPages(data.pages);
+                    setTotalItems(data.total);
+                }
+            }
+        } catch (error) {
+            console.error('Error fetching history:', error);
+        } finally {
+            setLoading(false);
+        }
+    }, [getToken, isLocalDev, activeHistoryTab, currentPage, filterEmotion, debouncedSearch]);
+
+    useEffect(() => {
         if (!authLoading && (user || isLocalDev)) {
             fetchData();
         }
-    }, [currentPage, activeHistoryTab, filterEmotion, debouncedSearch, user, authLoading, isLocalDev]);
+    }, [user, authLoading, isLocalDev, fetchData]);
 
     const displayedEntries = history;
 

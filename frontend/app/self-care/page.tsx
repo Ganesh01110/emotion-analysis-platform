@@ -3,9 +3,7 @@
 import Navigation from '../components/Navigation';
 import UserHeader from '../components/UserHeader';
 import Footer from '../components/Footer';
-import dynamic from 'next/dynamic';
-import LoadingSpinner from '../components/LoadingSpinner';
-import { Heart, Music, Book, Coffee, Sparkles, BookOpen, Activity, Calendar } from 'lucide-react';
+import { Heart, BookOpen, Activity, Calendar } from 'lucide-react';
 import affirmationsData from '../data/affirmations.json';
 import { useState, useEffect } from 'react';
 import SelfCareToolbox from '../components/SelfCareToolbox';

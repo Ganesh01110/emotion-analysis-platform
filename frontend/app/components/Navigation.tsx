@@ -5,7 +5,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, X, Home, History, BarChart3, Heart, Settings, LogOut } from 'lucide-react';
+import { Menu, X, Home, History, Heart, LogOut } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 
 export default function Navigation() {
