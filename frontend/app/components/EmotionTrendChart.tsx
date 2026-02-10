@@ -34,23 +34,26 @@ export default function EmotionTrendChart({ data, selectedDate, width = 800, hei
 
     useEffect(() => {
         if (selectedDate && data.length) {
-            // Find the entry for this date (YYYY-MM-DD match)
-            const entriesForDate = data.filter(d => d.date.includes(selectedDate));
-            if (entriesForDate.length > 0) {
-                // Find dominant emotion of the first reflection on that day
-                const scores = entriesForDate[0].scores;
-                let dominant = 'joy';
-                let maxScore = -1;
-                Object.entries(scores).forEach(([emo, score]) => {
-                    if (score > maxScore) {
-                        maxScore = score;
-                        dominant = emo;
+            // Update asynchronously to avoid illegal cascading renders in Next.js 16
+            setTimeout(() => {
+                const entriesForDate = data.filter(d => d.date.includes(selectedDate));
+                if (entriesForDate.length > 0) {
+                    const scores = entriesForDate[0].scores;
+                    let dominant = 'joy';
+                    let maxScore = -1;
+                    Object.entries(scores).forEach(([emo, score]) => {
+                        if (score > maxScore) {
+                            maxScore = score;
+                            dominant = emo;
+                        }
+                    });
+                    if (dominant !== selectedEmotion) {
+                        setSelectedEmotion(dominant);
                     }
-                });
-                setSelectedEmotion(dominant);
-            }
+                }
+            }, 0);
         }
-    }, [selectedDate, data]);
+    }, [selectedDate, data, selectedEmotion]);
 
     useEffect(() => {
         if (!svgRef.current || !data.length) return;

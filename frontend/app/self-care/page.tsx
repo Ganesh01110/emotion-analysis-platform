@@ -14,12 +14,10 @@ export default function SelfCarePage() {
         return shuffled.slice(0, 3);
     };
 
-    const [currentAffirmations, setCurrentAffirmations] = useState<string[]>([]);
+    const [currentAffirmations, setCurrentAffirmations] = useState<string[]>(() => getRandomAffirmations());
     const [weeklyActivity, setWeeklyActivity] = useState<any[]>([]);
 
     useEffect(() => {
-        setCurrentAffirmations(getRandomAffirmations());
-
         // Fetch real activity data for the streak
         const fetchActivity = async () => {
             try {
