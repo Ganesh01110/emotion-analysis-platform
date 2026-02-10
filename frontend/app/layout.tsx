@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import OfflineIndicator from "./components/OfflineIndicator";
 
 export const metadata: Metadata = {
   title: "Emotion Analysis - AI-Powered Mental Health Insights",
@@ -21,6 +22,7 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/icon-192x192.png" />
       </head>
       <body className="antialiased">
+        <OfflineIndicator />
         {children}
       </body>
     </html>
